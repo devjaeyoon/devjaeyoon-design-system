@@ -1,0 +1,35 @@
+{
+  "name": "@devjaeyoon-design-system/project",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": "24.18.0",
+    "pnpm": "11.18.0"
+  },
+  "packageManager": "pnpm@11.18.0",
+  "scripts": {
+    "dev:docs": "turbo run dev --filter=@devjaeyoon-design-system/docs",
+    "dev:storybook": "turbo run storybook --filter=@devjaeyoon-design-system/docs",
+    "format": "biome check --write --formatter-enabled=true --linter-enabled=false .",
+    "format:check": "biome check --formatter-enabled=true --linter-enabled=false .",
+    "lint": "biome lint .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:stories": "turbo run test:stories",
+    "build": "turbo run build build:storybook",
+    "build:packages": "turbo run build --filter=./packages/*",
+    "build:pages": "turbo run build:pages --filter=@devjaeyoon-design-system/docs",
+    "pack:check": "turbo run pack:check --filter=./packages/*",
+    "check": "node ./scripts/run-checks.mjs",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@changesets/cli": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
+  }
+}

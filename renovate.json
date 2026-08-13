@@ -1,0 +1,52 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "timezone": "Asia/Seoul",
+  "schedule": ["before 6am on Monday"],
+  "prConcurrentLimit": 5,
+  "branchConcurrentLimit": 5,
+  "automerge": false,
+  "separateMajorMinor": true,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on Monday"]
+  },
+  "packageRules": [
+    {
+      "description": "Keep Storybook packages aligned",
+      "matchPackageNames": ["storybook", "/^@storybook\\//"],
+      "groupName": "storybook"
+    },
+    {
+      "description": "Keep Astro documentation packages aligned",
+      "matchPackageNames": ["astro", "/^@astrojs\\//"],
+      "groupName": "astro"
+    },
+    {
+      "description": "Keep browser testing packages aligned",
+      "matchPackageNames": ["vitest", "playwright", "/^@vitest\\//"],
+      "groupName": "browser testing"
+    },
+    {
+      "description": "Group build and quality tooling",
+      "matchPackageNames": [
+        "turbo",
+        "typescript",
+        "vite",
+        "@vitejs/plugin-react",
+        "@biomejs/biome"
+      ],
+      "groupName": "build tooling"
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions"
+    },
+    {
+      "description": "Always isolate major upgrades",
+      "matchUpdateTypes": ["major"],
+      "groupName": null
+    }
+  ]
+}

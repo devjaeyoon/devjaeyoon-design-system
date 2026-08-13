@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build outputs
+dist/
+pages-dist/
+storybook-static/
+
+# framework and build caches
+.astro/
+.turbo/
+
+# testing
+coverage/
+
+# generated files
+packages/css/generated/
+
+# package archives
+*.tgz
+
+# misc
+.DS_Store
