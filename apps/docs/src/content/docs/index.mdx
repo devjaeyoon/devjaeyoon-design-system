@@ -1,0 +1,30 @@
+---
+title: devjaeyoon design system
+description: 일관되고 접근 가능한 제품 경험을 위한 디자인 시스템
+template: splash
+hero:
+  tagline: 토큰에서 React 컴포넌트까지 하나의 계약으로 연결합니다.
+  actions:
+    - text: 시작하기
+      link: /devjaeyoon-design-system/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: Storybook 열기
+      link: https://devjaeyoon.github.io/devjaeyoon-design-system/storybook/
+      icon: external
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+<CardGrid>
+  <Card title="일관된 토큰" icon="seti:config">
+    primitive와 semantic 토큰을 분리하고 light/dark 테마를 같은 공개 계약으로 관리합니다.
+  </Card>
+  <Card title="명시적인 스타일" icon="seti:css">
+    React 패키지는 CSS를 자동으로 주입하지 않습니다. 앱 엔트리에서 필요한 스타일을 직접
+    선택합니다.
+  </Card>
+  <Card title="접근성 우선" icon="accessibility">
+    Storybook의 실제 Chromium 렌더링과 axe 검사를 모든 story의 기본 품질 기준으로 사용합니다.
+  </Card>
+</CardGrid>

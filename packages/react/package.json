@@ -1,0 +1,59 @@
+{
+  "name": "@devjaeyoon-design-system/react",
+  "version": "0.0.0",
+  "private": true,
+  "description": "React components for the devjaeyoon design system",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devjaeyoon/devjaeyoon-design-system.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://devjaeyoon.github.io/devjaeyoon-design-system/components/button/",
+  "bugs": {
+    "url": "https://github.com/devjaeyoon/devjaeyoon-design-system/issues"
+  },
+  "keywords": [
+    "design-system",
+    "react",
+    "components",
+    "devjaeyoon"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "pack:check": "node ./scripts/check-ssr.mjs && node ../../scripts/check-package.mjs"
+  },
+  "peerDependencies": {
+    "@devjaeyoon-design-system/css": ">=0.0.0 <1.0.0",
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "catalog:",
+    "@devjaeyoon-design-system/css": "workspace:*",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "publint": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

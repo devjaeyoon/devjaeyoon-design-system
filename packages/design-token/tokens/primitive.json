@@ -1,0 +1,1090 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "color": {
+    "palette": {
+      "slate": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.972549, 0.980392, 0.988235],
+            "alpha": 1,
+            "hex": "#f8fafc"
+          },
+          "$description": "slate palette step 50."
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.945098, 0.960784, 0.976471],
+            "alpha": 1,
+            "hex": "#f1f5f9"
+          },
+          "$description": "slate palette step 100."
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.886275, 0.909804, 0.941176],
+            "alpha": 1,
+            "hex": "#e2e8f0"
+          },
+          "$description": "slate palette step 200."
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.796078, 0.835294, 0.882353],
+            "alpha": 1,
+            "hex": "#cbd5e1"
+          },
+          "$description": "slate palette step 300."
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.580392, 0.639216, 0.721569],
+            "alpha": 1,
+            "hex": "#94a3b8"
+          },
+          "$description": "slate palette step 400."
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.392157, 0.454902, 0.545098],
+            "alpha": 1,
+            "hex": "#64748b"
+          },
+          "$description": "slate palette step 500."
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.278431, 0.333333, 0.411765],
+            "alpha": 1,
+            "hex": "#475569"
+          },
+          "$description": "slate palette step 600."
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.2, 0.254902, 0.333333],
+            "alpha": 1,
+            "hex": "#334155"
+          },
+          "$description": "slate palette step 700."
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.117647, 0.160784, 0.231373],
+            "alpha": 1,
+            "hex": "#1e293b"
+          },
+          "$description": "slate palette step 800."
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.058824, 0.090196, 0.164706],
+            "alpha": 1,
+            "hex": "#0f172a"
+          },
+          "$description": "slate palette step 900."
+        },
+        "950": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.007843, 0.023529, 0.090196],
+            "alpha": 1,
+            "hex": "#020617"
+          },
+          "$description": "slate palette step 950."
+        }
+      },
+      "blue": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.937255, 0.964706, 1],
+            "alpha": 1,
+            "hex": "#eff6ff"
+          },
+          "$description": "blue palette step 50."
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.858824, 0.917647, 0.996078],
+            "alpha": 1,
+            "hex": "#dbeafe"
+          },
+          "$description": "blue palette step 100."
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.74902, 0.858824, 0.996078],
+            "alpha": 1,
+            "hex": "#bfdbfe"
+          },
+          "$description": "blue palette step 200."
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.576471, 0.772549, 0.992157],
+            "alpha": 1,
+            "hex": "#93c5fd"
+          },
+          "$description": "blue palette step 300."
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.376471, 0.647059, 0.980392],
+            "alpha": 1,
+            "hex": "#60a5fa"
+          },
+          "$description": "blue palette step 400."
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.231373, 0.509804, 0.964706],
+            "alpha": 1,
+            "hex": "#3b82f6"
+          },
+          "$description": "blue palette step 500."
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.145098, 0.388235, 0.921569],
+            "alpha": 1,
+            "hex": "#2563eb"
+          },
+          "$description": "blue palette step 600."
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.113725, 0.305882, 0.847059],
+            "alpha": 1,
+            "hex": "#1d4ed8"
+          },
+          "$description": "blue palette step 700."
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.117647, 0.25098, 0.686275],
+            "alpha": 1,
+            "hex": "#1e40af"
+          },
+          "$description": "blue palette step 800."
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.117647, 0.227451, 0.541176],
+            "alpha": 1,
+            "hex": "#1e3a8a"
+          },
+          "$description": "blue palette step 900."
+        },
+        "950": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.090196, 0.145098, 0.329412],
+            "alpha": 1,
+            "hex": "#172554"
+          },
+          "$description": "blue palette step 950."
+        }
+      },
+      "red": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.996078, 0.94902, 0.94902],
+            "alpha": 1,
+            "hex": "#fef2f2"
+          },
+          "$description": "red palette step 50."
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.996078, 0.886275, 0.886275],
+            "alpha": 1,
+            "hex": "#fee2e2"
+          },
+          "$description": "red palette step 100."
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.996078, 0.792157, 0.792157],
+            "alpha": 1,
+            "hex": "#fecaca"
+          },
+          "$description": "red palette step 200."
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.988235, 0.647059, 0.647059],
+            "alpha": 1,
+            "hex": "#fca5a5"
+          },
+          "$description": "red palette step 300."
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.972549, 0.443137, 0.443137],
+            "alpha": 1,
+            "hex": "#f87171"
+          },
+          "$description": "red palette step 400."
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.937255, 0.266667, 0.266667],
+            "alpha": 1,
+            "hex": "#ef4444"
+          },
+          "$description": "red palette step 500."
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.862745, 0.14902, 0.14902],
+            "alpha": 1,
+            "hex": "#dc2626"
+          },
+          "$description": "red palette step 600."
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.72549, 0.109804, 0.109804],
+            "alpha": 1,
+            "hex": "#b91c1c"
+          },
+          "$description": "red palette step 700."
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.6, 0.105882, 0.105882],
+            "alpha": 1,
+            "hex": "#991b1b"
+          },
+          "$description": "red palette step 800."
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.498039, 0.113725, 0.113725],
+            "alpha": 1,
+            "hex": "#7f1d1d"
+          },
+          "$description": "red palette step 900."
+        },
+        "950": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.270588, 0.039216, 0.039216],
+            "alpha": 1,
+            "hex": "#450a0a"
+          },
+          "$description": "red palette step 950."
+        }
+      },
+      "amber": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [1, 0.984314, 0.921569],
+            "alpha": 1,
+            "hex": "#fffbeb"
+          },
+          "$description": "amber palette step 50."
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.996078, 0.952941, 0.780392],
+            "alpha": 1,
+            "hex": "#fef3c7"
+          },
+          "$description": "amber palette step 100."
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.992157, 0.901961, 0.541176],
+            "alpha": 1,
+            "hex": "#fde68a"
+          },
+          "$description": "amber palette step 200."
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.988235, 0.827451, 0.301961],
+            "alpha": 1,
+            "hex": "#fcd34d"
+          },
+          "$description": "amber palette step 300."
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.984314, 0.74902, 0.141176],
+            "alpha": 1,
+            "hex": "#fbbf24"
+          },
+          "$description": "amber palette step 400."
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.960784, 0.619608, 0.043137],
+            "alpha": 1,
+            "hex": "#f59e0b"
+          },
+          "$description": "amber palette step 500."
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.85098, 0.466667, 0.023529],
+            "alpha": 1,
+            "hex": "#d97706"
+          },
+          "$description": "amber palette step 600."
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.705882, 0.32549, 0.035294],
+            "alpha": 1,
+            "hex": "#b45309"
+          },
+          "$description": "amber palette step 700."
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.572549, 0.25098, 0.054902],
+            "alpha": 1,
+            "hex": "#92400e"
+          },
+          "$description": "amber palette step 800."
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.470588, 0.207843, 0.058824],
+            "alpha": 1,
+            "hex": "#78350f"
+          },
+          "$description": "amber palette step 900."
+        },
+        "950": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.270588, 0.101961, 0.011765],
+            "alpha": 1,
+            "hex": "#451a03"
+          },
+          "$description": "amber palette step 950."
+        }
+      },
+      "green": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.941176, 0.992157, 0.956863],
+            "alpha": 1,
+            "hex": "#f0fdf4"
+          },
+          "$description": "green palette step 50."
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.862745, 0.988235, 0.905882],
+            "alpha": 1,
+            "hex": "#dcfce7"
+          },
+          "$description": "green palette step 100."
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.733333, 0.968627, 0.815686],
+            "alpha": 1,
+            "hex": "#bbf7d0"
+          },
+          "$description": "green palette step 200."
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.52549, 0.937255, 0.67451],
+            "alpha": 1,
+            "hex": "#86efac"
+          },
+          "$description": "green palette step 300."
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.290196, 0.870588, 0.501961],
+            "alpha": 1,
+            "hex": "#4ade80"
+          },
+          "$description": "green palette step 400."
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.133333, 0.772549, 0.368627],
+            "alpha": 1,
+            "hex": "#22c55e"
+          },
+          "$description": "green palette step 500."
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.086275, 0.639216, 0.290196],
+            "alpha": 1,
+            "hex": "#16a34a"
+          },
+          "$description": "green palette step 600."
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.082353, 0.501961, 0.239216],
+            "alpha": 1,
+            "hex": "#15803d"
+          },
+          "$description": "green palette step 700."
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.086275, 0.396078, 0.203922],
+            "alpha": 1,
+            "hex": "#166534"
+          },
+          "$description": "green palette step 800."
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.078431, 0.32549, 0.176471],
+            "alpha": 1,
+            "hex": "#14532d"
+          },
+          "$description": "green palette step 900."
+        },
+        "950": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.019608, 0.180392, 0.086275],
+            "alpha": 1,
+            "hex": "#052e16"
+          },
+          "$description": "green palette step 950."
+        }
+      }
+    },
+    "static": {
+      "white": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [1, 1, 1],
+          "alpha": 1,
+          "hex": "#ffffff"
+        },
+        "$description": "Static white color."
+      },
+      "black": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0, 0, 0],
+          "alpha": 1,
+          "hex": "#000000"
+        },
+        "$description": "Static black color."
+      },
+      "transparent": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0, 0, 0],
+          "alpha": 0,
+          "hex": "#000000"
+        },
+        "$description": "Fully transparent color."
+      }
+    },
+    "alpha": {
+      "black": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.05,
+            "hex": "#000000"
+          },
+          "$description": "Black at 5% opacity."
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.1,
+            "hex": "#000000"
+          },
+          "$description": "Black at 10% opacity."
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.2,
+            "hex": "#000000"
+          },
+          "$description": "Black at 20% opacity."
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.5,
+            "hex": "#000000"
+          },
+          "$description": "Black at 50% opacity."
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0, 0, 0],
+            "alpha": 0.7,
+            "hex": "#000000"
+          },
+          "$description": "Black at 70% opacity."
+        }
+      },
+      "white": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [1, 1, 1],
+            "alpha": 0.05,
+            "hex": "#ffffff"
+          },
+          "$description": "White at 5% opacity."
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [1, 1, 1],
+            "alpha": 0.1,
+            "hex": "#ffffff"
+          },
+          "$description": "White at 10% opacity."
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [1, 1, 1],
+            "alpha": 0.2,
+            "hex": "#ffffff"
+          },
+          "$description": "White at 20% opacity."
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [1, 1, 1],
+            "alpha": 0.5,
+            "hex": "#ffffff"
+          },
+          "$description": "White at 50% opacity."
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [1, 1, 1],
+            "alpha": 0.7,
+            "hex": "#ffffff"
+          },
+          "$description": "White at 70% opacity."
+        }
+      }
+    }
+  },
+  "font": {
+    "family": {
+      "sans": {
+        "$type": "fontFamily",
+        "$value": [
+          "Pretendard Variable",
+          "Pretendard",
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "sans-serif"
+        ],
+        "$description": "Primary sans-serif font stack."
+      }
+    },
+    "size": {
+      "11": {
+        "$type": "dimension",
+        "$value": {
+          "value": 11,
+          "unit": "px"
+        },
+        "$description": "11px font size."
+      },
+      "12": {
+        "$type": "dimension",
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        },
+        "$description": "12px font size."
+      },
+      "14": {
+        "$type": "dimension",
+        "$value": {
+          "value": 14,
+          "unit": "px"
+        },
+        "$description": "14px font size."
+      },
+      "16": {
+        "$type": "dimension",
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        },
+        "$description": "16px font size."
+      },
+      "18": {
+        "$type": "dimension",
+        "$value": {
+          "value": 18,
+          "unit": "px"
+        },
+        "$description": "18px font size."
+      },
+      "20": {
+        "$type": "dimension",
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        },
+        "$description": "20px font size."
+      },
+      "24": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        },
+        "$description": "24px font size."
+      },
+      "30": {
+        "$type": "dimension",
+        "$value": {
+          "value": 30,
+          "unit": "px"
+        },
+        "$description": "30px font size."
+      },
+      "36": {
+        "$type": "dimension",
+        "$value": {
+          "value": 36,
+          "unit": "px"
+        },
+        "$description": "36px font size."
+      },
+      "48": {
+        "$type": "dimension",
+        "$value": {
+          "value": 48,
+          "unit": "px"
+        },
+        "$description": "48px font size."
+      }
+    },
+    "weight": {
+      "regular": {
+        "$type": "fontWeight",
+        "$value": 400,
+        "$description": "Regular font weight."
+      },
+      "strong": {
+        "$type": "fontWeight",
+        "$value": 600,
+        "$description": "Strong font weight."
+      },
+      "bold": {
+        "$type": "fontWeight",
+        "$value": 700,
+        "$description": "Bold display font weight."
+      }
+    },
+    "lineHeight": {
+      "110": {
+        "$type": "number",
+        "$value": 1.1,
+        "$description": "Unitless 1.1 line height."
+      },
+      "115": {
+        "$type": "number",
+        "$value": 1.15,
+        "$description": "Unitless 1.15 line height."
+      },
+      "120": {
+        "$type": "number",
+        "$value": 1.2,
+        "$description": "Unitless 1.2 line height."
+      },
+      "125": {
+        "$type": "number",
+        "$value": 1.25,
+        "$description": "Unitless 1.25 line height."
+      },
+      "130": {
+        "$type": "number",
+        "$value": 1.3,
+        "$description": "Unitless 1.3 line height."
+      },
+      "135": {
+        "$type": "number",
+        "$value": 1.35,
+        "$description": "Unitless 1.35 line height."
+      },
+      "140": {
+        "$type": "number",
+        "$value": 1.4,
+        "$description": "Unitless 1.4 line height."
+      },
+      "150": {
+        "$type": "number",
+        "$value": 1.5,
+        "$description": "Unitless 1.5 line height."
+      },
+      "160": {
+        "$type": "number",
+        "$value": 1.6,
+        "$description": "Unitless 1.6 line height."
+      }
+    },
+    "letterSpacing": {
+      "tight-25": {
+        "$type": "dimension",
+        "$value": {
+          "value": -0.025,
+          "unit": "em"
+        },
+        "$description": "-0.025em letter spacing."
+      },
+      "tight-20": {
+        "$type": "dimension",
+        "$value": {
+          "value": -0.02,
+          "unit": "em"
+        },
+        "$description": "-0.02em letter spacing."
+      },
+      "tight-15": {
+        "$type": "dimension",
+        "$value": {
+          "value": -0.015,
+          "unit": "em"
+        },
+        "$description": "-0.015em letter spacing."
+      },
+      "tight-10": {
+        "$type": "dimension",
+        "$value": {
+          "value": -0.01,
+          "unit": "em"
+        },
+        "$description": "-0.01em letter spacing."
+      },
+      "tight-5": {
+        "$type": "dimension",
+        "$value": {
+          "value": -0.005,
+          "unit": "em"
+        },
+        "$description": "-0.005em letter spacing."
+      },
+      "normal": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0,
+          "unit": "em"
+        },
+        "$description": "0em letter spacing."
+      },
+      "wide-10": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0.01,
+          "unit": "em"
+        },
+        "$description": "0.01em letter spacing."
+      }
+    }
+  },
+  "space": {
+    "0": {
+      "$type": "dimension",
+      "$value": {
+        "value": 0,
+        "unit": "rem"
+      },
+      "$description": "0px spacing step expressed in rem."
+    },
+    "1": {
+      "$type": "dimension",
+      "$value": {
+        "value": 0.25,
+        "unit": "rem"
+      },
+      "$description": "4px spacing step expressed in rem."
+    },
+    "2": {
+      "$type": "dimension",
+      "$value": {
+        "value": 0.5,
+        "unit": "rem"
+      },
+      "$description": "8px spacing step expressed in rem."
+    },
+    "3": {
+      "$type": "dimension",
+      "$value": {
+        "value": 0.75,
+        "unit": "rem"
+      },
+      "$description": "12px spacing step expressed in rem."
+    },
+    "4": {
+      "$type": "dimension",
+      "$value": {
+        "value": 1,
+        "unit": "rem"
+      },
+      "$description": "16px spacing step expressed in rem."
+    },
+    "5": {
+      "$type": "dimension",
+      "$value": {
+        "value": 1.25,
+        "unit": "rem"
+      },
+      "$description": "20px spacing step expressed in rem."
+    },
+    "6": {
+      "$type": "dimension",
+      "$value": {
+        "value": 1.5,
+        "unit": "rem"
+      },
+      "$description": "24px spacing step expressed in rem."
+    },
+    "8": {
+      "$type": "dimension",
+      "$value": {
+        "value": 2,
+        "unit": "rem"
+      },
+      "$description": "32px spacing step expressed in rem."
+    },
+    "10": {
+      "$type": "dimension",
+      "$value": {
+        "value": 2.5,
+        "unit": "rem"
+      },
+      "$description": "40px spacing step expressed in rem."
+    },
+    "12": {
+      "$type": "dimension",
+      "$value": {
+        "value": 3,
+        "unit": "rem"
+      },
+      "$description": "48px spacing step expressed in rem."
+    },
+    "16": {
+      "$type": "dimension",
+      "$value": {
+        "value": 4,
+        "unit": "rem"
+      },
+      "$description": "64px spacing step expressed in rem."
+    },
+    "20": {
+      "$type": "dimension",
+      "$value": {
+        "value": 5,
+        "unit": "rem"
+      },
+      "$description": "80px spacing step expressed in rem."
+    },
+    "24": {
+      "$type": "dimension",
+      "$value": {
+        "value": 6,
+        "unit": "rem"
+      },
+      "$description": "96px spacing step expressed in rem."
+    }
+  },
+  "motion": {
+    "duration": {
+      "instant": {
+        "$type": "duration",
+        "$value": {
+          "value": 0,
+          "unit": "ms"
+        },
+        "$description": "0ms motion duration."
+      },
+      "fast": {
+        "$type": "duration",
+        "$value": {
+          "value": 120,
+          "unit": "ms"
+        },
+        "$description": "120ms motion duration."
+      },
+      "normal": {
+        "$type": "duration",
+        "$value": {
+          "value": 200,
+          "unit": "ms"
+        },
+        "$description": "200ms motion duration."
+      },
+      "slow": {
+        "$type": "duration",
+        "$value": {
+          "value": 320,
+          "unit": "ms"
+        },
+        "$description": "320ms motion duration."
+      }
+    },
+    "curve": {
+      "linear": {
+        "$type": "cubicBezier",
+        "$value": [0, 0, 1, 1],
+        "$description": "Linear easing."
+      },
+      "standard": {
+        "$type": "cubicBezier",
+        "$value": [0.2, 0, 0, 1],
+        "$description": "Standard interface easing."
+      },
+      "enter": {
+        "$type": "cubicBezier",
+        "$value": [0, 0, 0.2, 1],
+        "$description": "Enter easing."
+      },
+      "exit": {
+        "$type": "cubicBezier",
+        "$value": [0.4, 0, 1, 1],
+        "$description": "Exit easing."
+      }
+    }
+  }
+}

@@ -1,0 +1,426 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "space": {
+    "layout": {
+      "gutter": {
+        "$type": "dimension",
+        "$value": "{space.4}",
+        "$description": "Default horizontal layout gutter."
+      },
+      "section-sm": {
+        "$type": "dimension",
+        "$value": "{space.8}",
+        "$description": "Section spacing for sm layouts."
+      },
+      "section-md": {
+        "$type": "dimension",
+        "$value": "{space.12}",
+        "$description": "Section spacing for md layouts."
+      },
+      "section-lg": {
+        "$type": "dimension",
+        "$value": "{space.16}",
+        "$description": "Section spacing for lg layouts."
+      }
+    },
+    "content": {
+      "stack": {
+        "sm": {
+          "$type": "dimension",
+          "$value": "{space.2}",
+          "$description": "Content stack spacing for sm density."
+        },
+        "md": {
+          "$type": "dimension",
+          "$value": "{space.4}",
+          "$description": "Content stack spacing for md density."
+        },
+        "lg": {
+          "$type": "dimension",
+          "$value": "{space.6}",
+          "$description": "Content stack spacing for lg density."
+        }
+      }
+    }
+  },
+  "typography": {
+    "display": {
+      "lg": {
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.48}",
+            "fontWeight": "{font.weight.bold}",
+            "lineHeight": "{font.lineHeight.110}",
+            "letterSpacing": "{font.letterSpacing.tight-25}"
+          },
+          "$description": "display lg strong text style."
+        }
+      },
+      "md": {
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.36}",
+            "fontWeight": "{font.weight.bold}",
+            "lineHeight": "{font.lineHeight.115}",
+            "letterSpacing": "{font.letterSpacing.tight-20}"
+          },
+          "$description": "display md strong text style."
+        }
+      },
+      "sm": {
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.30}",
+            "fontWeight": "{font.weight.bold}",
+            "lineHeight": "{font.lineHeight.120}",
+            "letterSpacing": "{font.letterSpacing.tight-15}"
+          },
+          "$description": "display sm strong text style."
+        }
+      }
+    },
+    "heading": {
+      "lg": {
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.24}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.125}",
+            "letterSpacing": "{font.letterSpacing.tight-10}"
+          },
+          "$description": "heading lg strong text style."
+        }
+      },
+      "md": {
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.20}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.130}",
+            "letterSpacing": "{font.letterSpacing.tight-5}"
+          },
+          "$description": "heading md strong text style."
+        }
+      },
+      "sm": {
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.18}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.135}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "heading sm strong text style."
+        }
+      }
+    },
+    "title": {
+      "lg": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.20}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "title lg regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.20}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "title lg strong text style."
+        }
+      },
+      "md": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.18}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "title md regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.18}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "title md strong text style."
+        }
+      },
+      "sm": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.16}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "title sm regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.16}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "title sm strong text style."
+        }
+      }
+    },
+    "body": {
+      "lg": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.18}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.160}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "body lg regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.18}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.160}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "body lg strong text style."
+        }
+      },
+      "md": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.16}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.150}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "body md regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.16}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.150}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "body md strong text style."
+        }
+      },
+      "sm": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.14}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.150}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "body sm regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.14}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.150}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "body sm strong text style."
+        }
+      }
+    },
+    "label": {
+      "lg": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.16}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.125}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "label lg regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.16}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.125}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "label lg strong text style."
+        }
+      },
+      "md": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.14}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.125}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "label md regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.14}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.125}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "label md strong text style."
+        }
+      },
+      "sm": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.12}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.125}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "label sm regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.12}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.125}",
+            "letterSpacing": "{font.letterSpacing.normal}"
+          },
+          "$description": "label sm strong text style."
+        }
+      }
+    },
+    "caption": {
+      "lg": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.14}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.wide-10}"
+          },
+          "$description": "caption lg regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.14}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.wide-10}"
+          },
+          "$description": "caption lg strong text style."
+        }
+      },
+      "md": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.12}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.wide-10}"
+          },
+          "$description": "caption md regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.12}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.wide-10}"
+          },
+          "$description": "caption md strong text style."
+        }
+      },
+      "sm": {
+        "regular": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.11}",
+            "fontWeight": "{font.weight.regular}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.wide-10}"
+          },
+          "$description": "caption sm regular text style."
+        },
+        "strong": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "{font.family.sans}",
+            "fontSize": "{font.size.11}",
+            "fontWeight": "{font.weight.strong}",
+            "lineHeight": "{font.lineHeight.140}",
+            "letterSpacing": "{font.letterSpacing.wide-10}"
+          },
+          "$description": "caption sm strong text style."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "name": "@devjaeyoon-design-system/css",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Theme variables and component styles for the devjaeyoon design system",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "style": "./dist/index.css",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/index.css"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devjaeyoon/devjaeyoon-design-system.git",
+    "directory": "packages/css"
+  },
+  "homepage": "https://devjaeyoon.github.io/devjaeyoon-design-system/getting-started/",
+  "bugs": {
+    "url": "https://github.com/devjaeyoon/devjaeyoon-design-system/issues"
+  },
+  "keywords": [
+    "design-system",
+    "css",
+    "theme",
+    "devjaeyoon"
+  ],
+  "sideEffects": [
+    "./dist/index.js",
+    "./dist/index.css"
+  ],
+  "scripts": {
+    "build": "node ./scripts/generate-css.mjs && vite build && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "pack:check": "node ../../scripts/check-package.mjs --consumer-fixture ./test/consumer"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "catalog:",
+    "@devjaeyoon-design-system/design-token": "workspace:*",
+    "@types/node": "catalog:",
+    "publint": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "motion": {
+    "duration": {
+      "feedback": {
+        "$type": "duration",
+        "$value": "{motion.duration.fast}",
+        "$description": "feedback motion duration for the preferred mode."
+      },
+      "enter": {
+        "$type": "duration",
+        "$value": "{motion.duration.normal}",
+        "$description": "enter motion duration for the preferred mode."
+      },
+      "exit": {
+        "$type": "duration",
+        "$value": "{motion.duration.fast}",
+        "$description": "exit motion duration for the preferred mode."
+      }
+    },
+    "easing": {
+      "feedback": {
+        "$type": "cubicBezier",
+        "$value": "{motion.curve.standard}",
+        "$description": "feedback motion easing for the preferred mode."
+      },
+      "enter": {
+        "$type": "cubicBezier",
+        "$value": "{motion.curve.enter}",
+        "$description": "enter motion easing for the preferred mode."
+      },
+      "exit": {
+        "$type": "cubicBezier",
+        "$value": "{motion.curve.exit}",
+        "$description": "exit motion easing for the preferred mode."
+      }
+    }
+  }
+}

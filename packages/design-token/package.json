@@ -1,0 +1,61 @@
+{
+  "name": "@devjaeyoon-design-system/design-token",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Design tokens for the devjaeyoon design system",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./definitions": {
+      "types": "./dist/definitions.d.ts",
+      "import": "./dist/definitions.js",
+      "default": "./dist/definitions.js"
+    },
+    "./definitions/*.json": {
+      "import": "./dist/definitions/*.json",
+      "default": "./dist/definitions/*.json"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devjaeyoon/devjaeyoon-design-system.git",
+    "directory": "packages/design-token"
+  },
+  "homepage": "https://devjaeyoon.github.io/devjaeyoon-design-system/foundations/design-tokens/",
+  "bugs": {
+    "url": "https://github.com/devjaeyoon/devjaeyoon-design-system/issues"
+  },
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "theme",
+    "devjaeyoon"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "generate": "node ./scripts/generate-tokens.mjs",
+    "build": "pnpm run generate && vite build && tsc -p tsconfig.build.json && node ./scripts/copy-definitions.mjs",
+    "typecheck": "pnpm run generate && tsc -p tsconfig.json",
+    "test": "pnpm run generate && vitest run",
+    "pack:check": "node ../../scripts/check-package.mjs --consumer-fixture ./test/consumer"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "catalog:",
+    "publint": "catalog:",
+    "style-dictionary": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

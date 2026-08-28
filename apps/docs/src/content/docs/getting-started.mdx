@@ -1,0 +1,46 @@
+---
+title: 설치와 시작
+description: 패키지를 설치하고 전역 CSS를 연결하는 방법
+---
+
+## 요구 환경
+
+- React 19
+- ESM을 지원하는 번들러
+- CSS import를 처리할 수 있는 애플리케이션 빌드 환경
+
+## 설치
+
+최초 공개 후 필요한 패키지를 설치합니다.
+
+```sh
+pnpm add @devjaeyoon-design-system/react @devjaeyoon-design-system/css react
+```
+
+애플리케이션 엔트리에서 CSS를 한 번 명시적으로 불러옵니다.
+
+```tsx
+import "@devjaeyoon-design-system/css";
+import { Button } from "@devjaeyoon-design-system/react";
+
+export function App() {
+  return <Button>저장</Button>;
+}
+```
+
+React 패키지는 스타일을 자동 import하지 않습니다. SSR 환경에서도 React ESM 모듈 자체는
+브라우저 전역이나 CSS loader 없이 import할 수 있습니다.
+
+## 테마
+
+문서 루트 또는 애플리케이션 루트에 테마 속성을 지정합니다.
+
+```html
+<html data-theme="dark"></html>
+```
+
+- `data-theme="light"`: light 테마 고정
+- `data-theme="dark"`: dark 테마 고정
+- 속성 없음: `prefers-color-scheme` 사용
+
+명시된 속성은 시스템 설정보다 항상 우선합니다.

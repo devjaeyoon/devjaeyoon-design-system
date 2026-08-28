@@ -15,6 +15,7 @@ coverage/
 
 # generated files
 packages/css/generated/
+packages/design-token/src/generated/
 
 # package archives
 *.tgz
