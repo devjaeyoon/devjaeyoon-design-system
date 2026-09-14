@@ -1,0 +1,16 @@
+---
+title: 접근성
+description: 키보드, 의미 구조, 색상, 자동 검사 원칙
+---
+
+접근성은 별도 기능이 아니라 컴포넌트 공개 계약의 일부입니다.
+
+- native HTML 의미와 keyboard behavior를 우선합니다.
+- focus-visible 상태를 제거하지 않고 테마별로 충분히 구분합니다.
+- 상태를 색상 하나로만 전달하지 않습니다.
+- loading과 disabled 상태의 이름과 상호작용 가능 여부를 일치시킵니다.
+- `prefers-reduced-motion` 환경에서 불필요한 애니메이션을 최소화합니다.
+
+모든 story는 Playwright Chromium에서 렌더링되며 `play` 함수가 있으면 interaction을 실행합니다.
+Storybook의 기본 `a11y.test` 값은 `error`라서 axe 위반이 CI 실패로 이어집니다. 자동 검사는
+수동 키보드·스크린 리더 검토를 대체하지 않습니다.

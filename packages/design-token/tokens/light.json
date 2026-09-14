@@ -1,0 +1,486 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "color": {
+    "fg": {
+      "neutral": {
+        "$root": {
+          "$type": "color",
+          "$value": "{color.palette.slate.900}",
+          "$description": "neutral foreground (light theme)."
+        },
+        "muted": {
+          "$type": "color",
+          "$value": "{color.palette.slate.600}",
+          "$description": "neutral-muted foreground (light theme)."
+        },
+        "subtle": {
+          "$type": "color",
+          "$value": "{color.palette.slate.500}",
+          "$description": "neutral-subtle foreground (light theme)."
+        },
+        "inverse": {
+          "$type": "color",
+          "$value": "{color.palette.slate.50}",
+          "$description": "neutral-inverse foreground (light theme)."
+        }
+      },
+      "disabled": {
+        "$type": "color",
+        "$value": "{color.palette.slate.400}",
+        "$description": "disabled foreground (light theme)."
+      },
+      "placeholder": {
+        "$type": "color",
+        "$value": "{color.palette.slate.500}",
+        "$description": "placeholder foreground (light theme)."
+      },
+      "brand": {
+        "$type": "color",
+        "$value": "{color.palette.blue.700}",
+        "$description": "brand foreground (light theme)."
+      },
+      "critical": {
+        "$type": "color",
+        "$value": "{color.palette.red.700}",
+        "$description": "critical foreground (light theme)."
+      },
+      "warning": {
+        "$type": "color",
+        "$value": "{color.palette.amber.800}",
+        "$description": "warning foreground (light theme)."
+      },
+      "positive": {
+        "$type": "color",
+        "$value": "{color.palette.green.700}",
+        "$description": "positive foreground (light theme)."
+      },
+      "informative": {
+        "$type": "color",
+        "$value": "{color.palette.blue.700}",
+        "$description": "informative foreground (light theme)."
+      },
+      "on": {
+        "neutral": {
+          "$type": "color",
+          "$value": "{color.static.white}",
+          "$description": "Foreground on neutral solid backgrounds (light theme)."
+        },
+        "brand": {
+          "$type": "color",
+          "$value": "{color.static.white}",
+          "$description": "Foreground on brand solid backgrounds (light theme)."
+        },
+        "critical": {
+          "$type": "color",
+          "$value": "{color.static.white}",
+          "$description": "Foreground on critical solid backgrounds (light theme)."
+        },
+        "warning": {
+          "$type": "color",
+          "$value": "{color.palette.slate.950}",
+          "$description": "Foreground on warning solid backgrounds (light theme)."
+        },
+        "positive": {
+          "$type": "color",
+          "$value": "{color.static.white}",
+          "$description": "Foreground on positive solid backgrounds (light theme)."
+        },
+        "informative": {
+          "$type": "color",
+          "$value": "{color.static.white}",
+          "$description": "Foreground on informative solid backgrounds (light theme)."
+        }
+      }
+    },
+    "bg": {
+      "canvas": {
+        "$type": "color",
+        "$value": "{color.static.white}",
+        "$description": "canvas background (light theme)."
+      },
+      "surface": {
+        "$type": "color",
+        "$value": "{color.palette.slate.50}",
+        "$description": "surface background (light theme)."
+      },
+      "elevated": {
+        "$type": "color",
+        "$value": "{color.static.white}",
+        "$description": "elevated background (light theme)."
+      },
+      "overlay": {
+        "$root": {
+          "$type": "color",
+          "$value": "{color.alpha.black.700}",
+          "$description": "overlay background (light theme)."
+        },
+        "muted": {
+          "$type": "color",
+          "$value": "{color.alpha.black.500}",
+          "$description": "overlay-muted background (light theme)."
+        }
+      },
+      "disabled": {
+        "$type": "color",
+        "$value": "{color.palette.slate.100}",
+        "$description": "disabled background (light theme)."
+      },
+      "selected": {
+        "$root": {
+          "$type": "color",
+          "$value": "{color.palette.blue.50}",
+          "$description": "Selected background (light theme)."
+        },
+        "hover": {
+          "$type": "color",
+          "$value": "{color.palette.blue.100}",
+          "$description": "Hovered selected background (light theme)."
+        },
+        "pressed": {
+          "$type": "color",
+          "$value": "{color.palette.blue.200}",
+          "$description": "Pressed selected background (light theme)."
+        }
+      },
+      "transparent": {
+        "$root": {
+          "$type": "color",
+          "$value": "{color.static.transparent}",
+          "$description": "Transparent background (light theme)."
+        },
+        "hover": {
+          "$type": "color",
+          "$value": "{color.alpha.black.50}",
+          "$description": "Hovered transparent background (light theme)."
+        },
+        "pressed": {
+          "$type": "color",
+          "$value": "{color.alpha.black.100}",
+          "$description": "Pressed transparent background (light theme)."
+        }
+      },
+      "neutral": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.slate.800}",
+            "$description": "Neutral solid background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.slate.900}",
+            "$description": "Hovered neutral solid background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.slate.950}",
+            "$description": "Pressed neutral solid background (light theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.slate.100}",
+            "$description": "Neutral weak background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.slate.200}",
+            "$description": "Hovered neutral weak background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.slate.300}",
+            "$description": "Pressed neutral weak background (light theme)."
+          }
+        },
+        "inverse": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.slate.900}",
+            "$description": "Neutral inverse background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.slate.800}",
+            "$description": "Hovered neutral inverse background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.slate.700}",
+            "$description": "Pressed neutral inverse background (light theme)."
+          }
+        }
+      },
+      "brand": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.blue.700}",
+            "$description": "brand solid background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.blue.800}",
+            "$description": "Hovered brand solid background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.blue.900}",
+            "$description": "Pressed brand solid background (light theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.blue.50}",
+            "$description": "brand weak background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.blue.100}",
+            "$description": "Hovered brand weak background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.blue.200}",
+            "$description": "Pressed brand weak background (light theme)."
+          }
+        }
+      },
+      "critical": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.red.700}",
+            "$description": "critical solid background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.red.800}",
+            "$description": "Hovered critical solid background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.red.900}",
+            "$description": "Pressed critical solid background (light theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.red.50}",
+            "$description": "critical weak background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.red.100}",
+            "$description": "Hovered critical weak background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.red.200}",
+            "$description": "Pressed critical weak background (light theme)."
+          }
+        }
+      },
+      "warning": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.amber.400}",
+            "$description": "warning solid background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.amber.500}",
+            "$description": "Hovered warning solid background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.amber.600}",
+            "$description": "Pressed warning solid background (light theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.amber.50}",
+            "$description": "warning weak background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.amber.100}",
+            "$description": "Hovered warning weak background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.amber.200}",
+            "$description": "Pressed warning weak background (light theme)."
+          }
+        }
+      },
+      "positive": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.green.700}",
+            "$description": "positive solid background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.green.800}",
+            "$description": "Hovered positive solid background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.green.900}",
+            "$description": "Pressed positive solid background (light theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.green.50}",
+            "$description": "positive weak background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.green.100}",
+            "$description": "Hovered positive weak background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.green.200}",
+            "$description": "Pressed positive weak background (light theme)."
+          }
+        }
+      },
+      "informative": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.blue.700}",
+            "$description": "informative solid background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.blue.800}",
+            "$description": "Hovered informative solid background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.blue.900}",
+            "$description": "Pressed informative solid background (light theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.blue.50}",
+            "$description": "informative weak background (light theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.blue.100}",
+            "$description": "Hovered informative weak background (light theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.blue.200}",
+            "$description": "Pressed informative weak background (light theme)."
+          }
+        }
+      }
+    },
+    "stroke": {
+      "neutral": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.slate.700}",
+          "$description": "Neutral solid stroke (light theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.slate.300}",
+          "$description": "Neutral weak stroke (light theme)."
+        },
+        "subtle": {
+          "$type": "color",
+          "$value": "{color.palette.slate.200}",
+          "$description": "Neutral subtle stroke (light theme)."
+        }
+      },
+      "disabled": {
+        "$type": "color",
+        "$value": "{color.palette.slate.300}",
+        "$description": "Disabled stroke (light theme)."
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.palette.blue.600}",
+        "$description": "Focus indicator stroke (light theme)."
+      },
+      "brand": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.blue.700}",
+          "$description": "brand solid stroke (light theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.blue.300}",
+          "$description": "brand weak stroke (light theme)."
+        }
+      },
+      "critical": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.red.700}",
+          "$description": "critical solid stroke (light theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.red.300}",
+          "$description": "critical weak stroke (light theme)."
+        }
+      },
+      "warning": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.amber.800}",
+          "$description": "warning solid stroke (light theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.amber.300}",
+          "$description": "warning weak stroke (light theme)."
+        }
+      },
+      "positive": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.green.700}",
+          "$description": "positive solid stroke (light theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.green.300}",
+          "$description": "positive weak stroke (light theme)."
+        }
+      },
+      "informative": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.blue.700}",
+          "$description": "informative solid stroke (light theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.blue.300}",
+          "$description": "informative weak stroke (light theme)."
+        }
+      }
+    }
+  }
+}

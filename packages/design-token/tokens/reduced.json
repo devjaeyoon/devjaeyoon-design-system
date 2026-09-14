@@ -1,0 +1,48 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "motion": {
+    "duration": {
+      "feedback": {
+        "$type": "duration",
+        "$value": {
+          "value": 0.01,
+          "unit": "ms"
+        },
+        "$description": "feedback duration minimized for the reduced-motion mode."
+      },
+      "enter": {
+        "$type": "duration",
+        "$value": {
+          "value": 0.01,
+          "unit": "ms"
+        },
+        "$description": "enter duration minimized for the reduced-motion mode."
+      },
+      "exit": {
+        "$type": "duration",
+        "$value": {
+          "value": 0.01,
+          "unit": "ms"
+        },
+        "$description": "exit duration minimized for the reduced-motion mode."
+      }
+    },
+    "easing": {
+      "feedback": {
+        "$type": "cubicBezier",
+        "$value": [0, 0, 1, 1],
+        "$description": "feedback easing made linear for the reduced-motion mode."
+      },
+      "enter": {
+        "$type": "cubicBezier",
+        "$value": [0, 0, 1, 1],
+        "$description": "enter easing made linear for the reduced-motion mode."
+      },
+      "exit": {
+        "$type": "cubicBezier",
+        "$value": [0, 0, 1, 1],
+        "$description": "exit easing made linear for the reduced-motion mode."
+      }
+    }
+  }
+}

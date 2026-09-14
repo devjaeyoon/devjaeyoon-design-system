@@ -1,0 +1,486 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "color": {
+    "fg": {
+      "neutral": {
+        "$root": {
+          "$type": "color",
+          "$value": "{color.palette.slate.50}",
+          "$description": "neutral foreground (dark theme)."
+        },
+        "muted": {
+          "$type": "color",
+          "$value": "{color.palette.slate.300}",
+          "$description": "neutral-muted foreground (dark theme)."
+        },
+        "subtle": {
+          "$type": "color",
+          "$value": "{color.palette.slate.400}",
+          "$description": "neutral-subtle foreground (dark theme)."
+        },
+        "inverse": {
+          "$type": "color",
+          "$value": "{color.palette.slate.900}",
+          "$description": "neutral-inverse foreground (dark theme)."
+        }
+      },
+      "disabled": {
+        "$type": "color",
+        "$value": "{color.palette.slate.600}",
+        "$description": "disabled foreground (dark theme)."
+      },
+      "placeholder": {
+        "$type": "color",
+        "$value": "{color.palette.slate.500}",
+        "$description": "placeholder foreground (dark theme)."
+      },
+      "brand": {
+        "$type": "color",
+        "$value": "{color.palette.blue.300}",
+        "$description": "brand foreground (dark theme)."
+      },
+      "critical": {
+        "$type": "color",
+        "$value": "{color.palette.red.300}",
+        "$description": "critical foreground (dark theme)."
+      },
+      "warning": {
+        "$type": "color",
+        "$value": "{color.palette.amber.300}",
+        "$description": "warning foreground (dark theme)."
+      },
+      "positive": {
+        "$type": "color",
+        "$value": "{color.palette.green.300}",
+        "$description": "positive foreground (dark theme)."
+      },
+      "informative": {
+        "$type": "color",
+        "$value": "{color.palette.blue.300}",
+        "$description": "informative foreground (dark theme)."
+      },
+      "on": {
+        "neutral": {
+          "$type": "color",
+          "$value": "{color.palette.slate.950}",
+          "$description": "Foreground on neutral solid backgrounds (dark theme)."
+        },
+        "brand": {
+          "$type": "color",
+          "$value": "{color.palette.slate.950}",
+          "$description": "Foreground on brand solid backgrounds (dark theme)."
+        },
+        "critical": {
+          "$type": "color",
+          "$value": "{color.palette.slate.950}",
+          "$description": "Foreground on critical solid backgrounds (dark theme)."
+        },
+        "warning": {
+          "$type": "color",
+          "$value": "{color.palette.slate.950}",
+          "$description": "Foreground on warning solid backgrounds (dark theme)."
+        },
+        "positive": {
+          "$type": "color",
+          "$value": "{color.palette.slate.950}",
+          "$description": "Foreground on positive solid backgrounds (dark theme)."
+        },
+        "informative": {
+          "$type": "color",
+          "$value": "{color.palette.slate.950}",
+          "$description": "Foreground on informative solid backgrounds (dark theme)."
+        }
+      }
+    },
+    "bg": {
+      "canvas": {
+        "$type": "color",
+        "$value": "{color.palette.slate.950}",
+        "$description": "canvas background (dark theme)."
+      },
+      "surface": {
+        "$type": "color",
+        "$value": "{color.palette.slate.900}",
+        "$description": "surface background (dark theme)."
+      },
+      "elevated": {
+        "$type": "color",
+        "$value": "{color.palette.slate.800}",
+        "$description": "elevated background (dark theme)."
+      },
+      "overlay": {
+        "$root": {
+          "$type": "color",
+          "$value": "{color.alpha.black.700}",
+          "$description": "overlay background (dark theme)."
+        },
+        "muted": {
+          "$type": "color",
+          "$value": "{color.alpha.black.500}",
+          "$description": "overlay-muted background (dark theme)."
+        }
+      },
+      "disabled": {
+        "$type": "color",
+        "$value": "{color.palette.slate.800}",
+        "$description": "disabled background (dark theme)."
+      },
+      "selected": {
+        "$root": {
+          "$type": "color",
+          "$value": "{color.palette.blue.950}",
+          "$description": "Selected background (dark theme)."
+        },
+        "hover": {
+          "$type": "color",
+          "$value": "{color.palette.blue.900}",
+          "$description": "Hovered selected background (dark theme)."
+        },
+        "pressed": {
+          "$type": "color",
+          "$value": "{color.palette.blue.800}",
+          "$description": "Pressed selected background (dark theme)."
+        }
+      },
+      "transparent": {
+        "$root": {
+          "$type": "color",
+          "$value": "{color.static.transparent}",
+          "$description": "Transparent background (dark theme)."
+        },
+        "hover": {
+          "$type": "color",
+          "$value": "{color.alpha.white.100}",
+          "$description": "Hovered transparent background (dark theme)."
+        },
+        "pressed": {
+          "$type": "color",
+          "$value": "{color.alpha.white.200}",
+          "$description": "Pressed transparent background (dark theme)."
+        }
+      },
+      "neutral": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.slate.200}",
+            "$description": "Neutral solid background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.slate.100}",
+            "$description": "Hovered neutral solid background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.slate.50}",
+            "$description": "Pressed neutral solid background (dark theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.slate.800}",
+            "$description": "Neutral weak background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.slate.700}",
+            "$description": "Hovered neutral weak background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.slate.600}",
+            "$description": "Pressed neutral weak background (dark theme)."
+          }
+        },
+        "inverse": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.slate.100}",
+            "$description": "Neutral inverse background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.slate.200}",
+            "$description": "Hovered neutral inverse background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.slate.300}",
+            "$description": "Pressed neutral inverse background (dark theme)."
+          }
+        }
+      },
+      "brand": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.blue.400}",
+            "$description": "brand solid background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.blue.300}",
+            "$description": "Hovered brand solid background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.blue.200}",
+            "$description": "Pressed brand solid background (dark theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.blue.950}",
+            "$description": "brand weak background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.blue.900}",
+            "$description": "Hovered brand weak background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.blue.800}",
+            "$description": "Pressed brand weak background (dark theme)."
+          }
+        }
+      },
+      "critical": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.red.400}",
+            "$description": "critical solid background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.red.300}",
+            "$description": "Hovered critical solid background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.red.200}",
+            "$description": "Pressed critical solid background (dark theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.red.950}",
+            "$description": "critical weak background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.red.900}",
+            "$description": "Hovered critical weak background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.red.800}",
+            "$description": "Pressed critical weak background (dark theme)."
+          }
+        }
+      },
+      "warning": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.amber.400}",
+            "$description": "warning solid background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.amber.300}",
+            "$description": "Hovered warning solid background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.amber.200}",
+            "$description": "Pressed warning solid background (dark theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.amber.950}",
+            "$description": "warning weak background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.amber.900}",
+            "$description": "Hovered warning weak background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.amber.800}",
+            "$description": "Pressed warning weak background (dark theme)."
+          }
+        }
+      },
+      "positive": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.green.400}",
+            "$description": "positive solid background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.green.300}",
+            "$description": "Hovered positive solid background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.green.200}",
+            "$description": "Pressed positive solid background (dark theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.green.950}",
+            "$description": "positive weak background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.green.900}",
+            "$description": "Hovered positive weak background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.green.800}",
+            "$description": "Pressed positive weak background (dark theme)."
+          }
+        }
+      },
+      "informative": {
+        "solid": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.blue.400}",
+            "$description": "informative solid background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.blue.300}",
+            "$description": "Hovered informative solid background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.blue.200}",
+            "$description": "Pressed informative solid background (dark theme)."
+          }
+        },
+        "weak": {
+          "$root": {
+            "$type": "color",
+            "$value": "{color.palette.blue.950}",
+            "$description": "informative weak background (dark theme)."
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{color.palette.blue.900}",
+            "$description": "Hovered informative weak background (dark theme)."
+          },
+          "pressed": {
+            "$type": "color",
+            "$value": "{color.palette.blue.800}",
+            "$description": "Pressed informative weak background (dark theme)."
+          }
+        }
+      }
+    },
+    "stroke": {
+      "neutral": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.slate.300}",
+          "$description": "Neutral solid stroke (dark theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.slate.700}",
+          "$description": "Neutral weak stroke (dark theme)."
+        },
+        "subtle": {
+          "$type": "color",
+          "$value": "{color.palette.slate.800}",
+          "$description": "Neutral subtle stroke (dark theme)."
+        }
+      },
+      "disabled": {
+        "$type": "color",
+        "$value": "{color.palette.slate.700}",
+        "$description": "Disabled stroke (dark theme)."
+      },
+      "focus": {
+        "$type": "color",
+        "$value": "{color.palette.blue.300}",
+        "$description": "Focus indicator stroke (dark theme)."
+      },
+      "brand": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.blue.300}",
+          "$description": "brand solid stroke (dark theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.blue.700}",
+          "$description": "brand weak stroke (dark theme)."
+        }
+      },
+      "critical": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.red.300}",
+          "$description": "critical solid stroke (dark theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.red.700}",
+          "$description": "critical weak stroke (dark theme)."
+        }
+      },
+      "warning": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.amber.300}",
+          "$description": "warning solid stroke (dark theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.amber.700}",
+          "$description": "warning weak stroke (dark theme)."
+        }
+      },
+      "positive": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.green.300}",
+          "$description": "positive solid stroke (dark theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.green.700}",
+          "$description": "positive weak stroke (dark theme)."
+        }
+      },
+      "informative": {
+        "solid": {
+          "$type": "color",
+          "$value": "{color.palette.blue.300}",
+          "$description": "informative solid stroke (dark theme)."
+        },
+        "weak": {
+          "$type": "color",
+          "$value": "{color.palette.blue.700}",
+          "$description": "informative weak stroke (dark theme)."
+        }
+      }
+    }
+  }
+}

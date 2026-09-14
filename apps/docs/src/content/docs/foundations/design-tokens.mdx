@@ -1,0 +1,121 @@
+---
+title: 디자인 토큰
+description: DTCG 원천과 core semantic naming 및 사용 계약
+---
+
+## 계층과 공개 API
+
+`@devjaeyoon-design-system/design-token`의 유일한 원천은 DTCG 2025.10 JSON입니다. Style
+Dictionary가 reference를 해소해 TypeScript와 CSS 생성 데이터를 만들며, root entry는 실제 CSS
+값만 제공합니다.
+
+```ts
+import {
+  primitiveTokens,
+  semanticTokens,
+  textStyles,
+  themes,
+} from "@devjaeyoon-design-system/design-token";
+
+const darkCanvas = themes.dark["color-bg-canvas"];
+const sectionGap = semanticTokens["space-layout-section-md"];
+const body = textStyles["typography-body-md-regular"];
+```
+
+원본 reference가 필요한 도구는 definitions entry를 사용합니다. JSON subpath는 DTCG 파일을 가공 없이
+제공합니다.
+
+```ts
+import { themeDefinitions } from "@devjaeyoon-design-system/design-token/definitions";
+import lightJson from "@devjaeyoon-design-system/design-token/definitions/light.json" with {
+  type: "json",
+};
+
+const reference = themeDefinitions.light.color.bg.brand.solid.$root.$value;
+```
+
+## Naming grammar
+
+semantic 이름은 flat kebab-case입니다. 기본 상태에는 suffix를 붙이지 않고 상태는 `-hover`,
+`-pressed` 순서로 확장합니다.
+
+- 색상: `color-{fg|bg|stroke}-{role}[-{strength}][-{state}]`
+- 타이포그래피: `typography-{role}-{lg|md|sm}-{regular|strong}`
+- 간격: `space-{layout|content}-{purpose}[-{size}]`
+- 모션: `motion-{duration|easing}-{feedback|enter|exit}`
+
+`display`와 `heading`은 `strong`만 제공합니다. 존재하지 않는 조합을 만들거나 색상 이름에 시각적
+단계(`blue-700`)를 직접 노출하지 않습니다.
+
+## Color pairing
+
+배경과 foreground는 의미가 같은 쌍을 사용합니다.
+
+| 상황 | Background | Foreground |
+| --- | --- | --- |
+| 주요 액션 | `color-bg-brand-solid` | `color-fg-on-brand` |
+| 위험 액션 | `color-bg-critical-solid` | `color-fg-on-critical` |
+| 경고 | `color-bg-warning-solid` | `color-fg-on-warning` |
+| 약한 상태 표면 | `color-bg-{intent}-weak` | `color-fg-{intent}` |
+| 일반 표면 | `color-bg-canvas` 또는 `color-bg-surface` | `color-fg-neutral` |
+| 중립 solid | `color-bg-neutral-solid` | `color-fg-on-neutral` |
+
+solid/on-intent, weak/intent-foreground, 중립 본문 조합은 light와 dark에서 WCAG 4.5:1 이상을
+자동 검사합니다. 의미 있는 solid stroke와 focus stroke는 인접 기본 표면 대비 3:1 이상이어야
+합니다.
+
+## Intent와 상태
+
+- `brand`: 제품 정체성과 주요 행동
+- `critical`: 오류, 삭제, 되돌리기 어려운 행동
+- `warning`: 주의가 필요하지만 아직 실패하지 않은 상태
+- `positive`: 성공과 완료
+- `informative`: 중립적인 정보와 안내
+
+interactive 배경은 기본 → `-hover` → `-pressed`를 사용합니다. CSS `:active`는 `-pressed`에
+연결합니다. disabled 요소는 `color-fg-disabled`, `color-bg-disabled`,
+`color-stroke-disabled`를 함께 사용하며 opacity로 상태를 계산하지 않습니다. focus indicator는
+`color-stroke-focus`를 사용합니다.
+
+## Typography
+
+텍스트 스타일은 composite로 제공되고 CSS에서는 다음 다섯 property 변수로 확장됩니다.
+
+```css
+font-family: var(--djy-typography-body-md-regular-font-family);
+font-size: var(--djy-typography-body-md-regular-font-size);
+font-weight: var(--djy-typography-body-md-regular-font-weight);
+line-height: var(--djy-typography-body-md-regular-line-height);
+letter-spacing: var(--djy-typography-body-md-regular-letter-spacing);
+```
+
+`display`는 큰 메시지, `heading`은 문서 구조, `title`은 영역 제목, `body`는 장문,
+`label`은 컨트롤, `caption`은 보조 설명에 사용합니다. 크기를 맞추기 위해 다른 role을 대신 쓰지
+않습니다.
+
+## Spacing
+
+primitive spacing은 4px 기반 rem scale입니다. 화면 구조에는 `space-layout-gutter`와
+`space-layout-section-{sm|md|lg}`를, 콘텐츠 내부의 수직 리듬에는
+`space-content-stack-{sm|md|lg}`를 사용합니다. 컴포넌트 구현에서 scale 값이 필요한 경우에만
+`--djy-space-*` primitive를 직접 사용합니다.
+
+## Motion
+
+피드백, 진입, 이탈에는 각각 대응하는 duration과 easing을 함께 사용합니다.
+
+```css
+transition:
+  background-color var(--djy-motion-duration-feedback)
+  var(--djy-motion-easing-feedback);
+```
+
+`prefers-reduced-motion: reduce`에서는 동일한 semantic 변수의 duration이 `0.01ms`, easing이
+`linear`로 바뀝니다. 소비자는 별도 reduced 변수나 고정 duration을 만들지 않습니다. 반복
+animation처럼 duration 변경만으로 충분하지 않은 동작은 반복 횟수도 함께 줄입니다.
+
+## 변경 규칙
+
+semantic 키는 공개 API입니다. `tokens/**` 또는 생성기 변경으로 생성 CSS가 달라지면
+`design-token`과 `css` 공개 변경으로 함께 취급합니다. component 전용 토큰, native 산출물,
+고대비·색각 테마는 현재 범위에 포함하지 않습니다.

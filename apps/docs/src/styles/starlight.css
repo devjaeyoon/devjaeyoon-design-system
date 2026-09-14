@@ -1,0 +1,16 @@
+@import "@devjaeyoon-design-system/css/styles.css";
+
+:root {
+  --sl-font: var(--djy-typography-body-md-regular-font-family);
+  --sl-color-accent-low: var(--djy-color-bg-brand-weak);
+  --sl-color-accent: var(--djy-color-fg-brand);
+  --sl-color-accent-high: var(--djy-color-fg-neutral);
+}
+
+.hero .tagline {
+  max-width: 42rem;
+}
+
+.sl-markdown-content .djy-button {
+  margin-block: var(--djy-space-content-stack-sm);
+}

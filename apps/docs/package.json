@@ -1,0 +1,43 @@
+{
+  "name": "@devjaeyoon-design-system/docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "storybook": "storybook dev --port 6006 --no-open",
+    "build:storybook": "storybook build --output-dir storybook-static",
+    "build:pages": "node ./scripts/build-pages.mjs",
+    "typecheck": "astro check && tsc -p tsconfig.json",
+    "test": "vitest run --project=unit",
+    "test:stories": "vitest run --project=storybook"
+  },
+  "dependencies": {
+    "@astrojs/react": "catalog:",
+    "@astrojs/starlight": "catalog:",
+    "@devjaeyoon-design-system/css": "workspace:*",
+    "@devjaeyoon-design-system/design-token": "workspace:*",
+    "@devjaeyoon-design-system/react": "workspace:*",
+    "astro": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@astrojs/check": "catalog:",
+    "@storybook/addon-a11y": "catalog:",
+    "@storybook/addon-docs": "catalog:",
+    "@storybook/addon-vitest": "catalog:",
+    "@storybook/react-vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@vitest/browser-playwright": "catalog:",
+    "playwright": "catalog:",
+    "storybook": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

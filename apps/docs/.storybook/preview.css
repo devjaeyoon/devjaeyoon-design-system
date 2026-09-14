@@ -1,0 +1,19 @@
+html,
+body,
+#storybook-root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--djy-color-fg-neutral);
+  background: var(--djy-color-bg-canvas);
+}
+
+.djy-story-canvas {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 2rem;
+  color: var(--djy-color-fg-neutral);
+  background: var(--djy-color-bg-canvas);
+}
