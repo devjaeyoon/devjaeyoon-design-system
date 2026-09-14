@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: ko-KR
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  collapse_walkthrough: true
+  sequence_diagrams: false
+  suggested_reviewers: false
+  in_progress_fortune: false
+  poem: false
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - TECH.md
+      - CONTRIBUTING.md
