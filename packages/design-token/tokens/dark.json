@@ -31,7 +31,7 @@
       },
       "placeholder": {
         "$type": "color",
-        "$value": "{color.palette.slate.500}",
+        "$value": "{color.palette.slate.400}",
         "$description": "placeholder foreground (dark theme)."
       },
       "brand": {
