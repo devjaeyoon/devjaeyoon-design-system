@@ -54,6 +54,26 @@ function expectAccessiblePairs(tokens: ThemeTokens) {
 }
 
 describe("semantic color contrast", () => {
+  it("keeps TextField placeholder, description and error text readable in both themes", () => {
+    for (const tokens of [lightThemeTokens, darkThemeTokens]) {
+      expect(
+        contrast(tokens["color-fg-placeholder"], tokens["color-bg-surface"]),
+      ).toBeGreaterThanOrEqual(4.5);
+      for (const background of [
+        "color-bg-canvas",
+        "color-bg-surface",
+        "color-bg-elevated",
+      ] as const) {
+        for (const foreground of ["color-fg-neutral-muted", "color-fg-critical"] as const) {
+          expect(
+            contrast(tokens[foreground], tokens[background]),
+            `${foreground} on ${background}`,
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    }
+  });
+
   it("meets text and non-text contrast thresholds in both themes", () => {
     expectAccessiblePairs(lightThemeTokens);
     expectAccessiblePairs(darkThemeTokens);

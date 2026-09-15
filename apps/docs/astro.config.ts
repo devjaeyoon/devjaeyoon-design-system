@@ -42,7 +42,10 @@ export default defineConfig({
         },
         {
           label: "컴포넌트",
-          items: [{ label: "Button", link: "/components/button/" }],
+          items: [
+            { label: "Button", link: "/components/button/" },
+            { label: "TextField", link: "/components/text-field/" },
+          ],
         },
         {
           label: "실험실",

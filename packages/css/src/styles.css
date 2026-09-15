@@ -13,6 +13,81 @@
 }
 
 @layer djy.components {
+  .djy-text-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--djy-space-2);
+    min-width: 0;
+  }
+
+  .djy-text-field__label {
+    color: var(--djy-color-fg-neutral);
+    font-family: var(--djy-typography-label-md-strong-font-family);
+    font-size: var(--djy-typography-label-md-strong-font-size);
+    font-weight: var(--djy-typography-label-md-strong-font-weight);
+    line-height: var(--djy-typography-label-md-strong-line-height);
+    letter-spacing: var(--djy-typography-label-md-strong-letter-spacing);
+  }
+
+  .djy-text-field__input {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 2.5rem;
+    padding-block: var(--djy-space-1);
+    padding-inline: var(--djy-space-3);
+    color: var(--djy-color-fg-neutral);
+    background: var(--djy-color-bg-surface);
+    border: 1px solid var(--djy-color-stroke-neutral-solid);
+    border-radius: 0.5rem;
+    font-family: var(--djy-typography-body-md-regular-font-family);
+    font-size: var(--djy-typography-body-md-regular-font-size);
+    font-weight: var(--djy-typography-body-md-regular-font-weight);
+    line-height: var(--djy-typography-body-md-regular-line-height);
+    letter-spacing: var(--djy-typography-body-md-regular-letter-spacing);
+  }
+
+  .djy-text-field__input::placeholder {
+    color: var(--djy-color-fg-placeholder);
+  }
+
+  .djy-text-field__input[aria-invalid="true"] {
+    border-color: var(--djy-color-stroke-critical-solid);
+  }
+
+  .djy-text-field__input:focus-visible {
+    outline: 3px solid var(--djy-color-stroke-focus);
+    outline-offset: 2px;
+  }
+
+  .djy-text-field__input:disabled {
+    color: var(--djy-color-fg-disabled);
+    background: var(--djy-color-bg-disabled);
+    border-color: var(--djy-color-stroke-disabled);
+    cursor: not-allowed;
+  }
+
+  .djy-text-field__input:disabled::placeholder {
+    color: var(--djy-color-fg-disabled);
+  }
+
+  .djy-text-field__description,
+  .djy-text-field__error {
+    margin: 0;
+    font-family: var(--djy-typography-body-sm-regular-font-family);
+    font-size: var(--djy-typography-body-sm-regular-font-size);
+    font-weight: var(--djy-typography-body-sm-regular-font-weight);
+    line-height: var(--djy-typography-body-sm-regular-line-height);
+    letter-spacing: var(--djy-typography-body-sm-regular-letter-spacing);
+  }
+
+  .djy-text-field__description {
+    color: var(--djy-color-fg-neutral-muted);
+  }
+
+  .djy-text-field__error {
+    color: var(--djy-color-fg-critical);
+  }
+
   .djy-button {
     display: inline-flex;
     gap: var(--djy-space-content-stack-sm);
