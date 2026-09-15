@@ -37,3 +37,9 @@ import { TextField } from "@devjaeyoon-design-system/react";
 
 [TextField 가이드](https://devjaeyoon.github.io/devjaeyoon-design-system/components/text-field/)와
 [프로필 수정 폼 예제](https://devjaeyoon.github.io/devjaeyoon-design-system/storybook/?path=/story/examples-profileform--save)를 참고한다.
+
+## 소비자 앱 검증
+
+`pnpm pack:check`는 build한 React와 CSS 패키지를 tarball로 만든 뒤 임시 React 앱에 설치한다.
+이 앱을 대상으로 공개 타입, production build와 CSS 포함 여부, SSR, Chromium의 폼 상호작용과
+light/dark 계산 스타일을 검사한다. 로컬 실행 전 Playwright Chromium이 설치되어 있어야 한다.

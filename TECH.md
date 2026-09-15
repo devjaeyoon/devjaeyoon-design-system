@@ -30,7 +30,9 @@ apps/docs/pages-dist
 - `typecheck`, `test`: 내부 패키지 build 뒤에 실행한다.
 - `build:storybook`: 공개 패키지 build 뒤에 실행하고 `storybook-static/**`를 cache한다.
 - `build:pages`: 동일 workspace의 Starlight/Storybook build 뒤에 artifact를 조립한다.
-- `pack:check`: 해당 패키지 build 뒤 publint, attw, pack dry-run을 실행한다.
+- `pack:check`: 해당 패키지 build 뒤 publint, attw, pack dry-run을 실행한다. React 패키지는
+  React/CSS tarball을 독립 임시 앱에 설치해 공개 타입, production build, SSR, Chromium
+  상호작용과 계산 스타일도 검사한다.
 - `dev`, `storybook`: persistent이며 cache하지 않는다.
 - `test:stories`: Vitest browser mode와 Playwright Chromium을 사용한다.
 
