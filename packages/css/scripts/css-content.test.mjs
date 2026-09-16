@@ -29,6 +29,8 @@ describe("generated CSS contract", () => {
   it("emits primitive values and semantic primitive references", () => {
     expect(css).toContain("--djy-color-palette-blue-700: #1d4ed8;");
     expect(css).toContain("--djy-color-bg-brand-solid: var(--djy-color-palette-blue-700);");
+    expect(css).toContain("--djy-radius-control: var(--djy-radius-12);");
+    expect(css).toContain("--djy-size-control-lg: var(--djy-size-52);");
     expect(css).toContain("--djy-space-layout-gutter: var(--djy-space-4);");
     expect(css).toContain("--djy-motion-easing-feedback: var(--djy-motion-curve-standard);");
 

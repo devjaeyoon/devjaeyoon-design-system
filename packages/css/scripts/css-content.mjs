@@ -105,10 +105,10 @@ export function generateCss({
   semanticDefinition,
 }) {
   const primitives = declarations(flattenResolvedValues(primitiveTokens));
-  const spacing = declarations(
+  const dimensions = declarations(
     semanticReferenceDeclarations(
       semanticDefinition,
-      (path, token) => path[0] === "space" && token.$type === "dimension",
+      (_path, token) => token.$type === "dimension",
     ),
   );
   const motion = declarations(semanticReferenceDeclarations(preferredMotionDefinition));
@@ -124,7 +124,7 @@ export function generateCss({
   :root[data-theme="light"] {
     color-scheme: light;
 ${primitives}
-${spacing}
+${dimensions}
 ${motion}
 ${typography}
 ${light}

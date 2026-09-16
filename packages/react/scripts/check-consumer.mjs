@@ -94,6 +94,10 @@ async function assertCssBundle(consumerDirectory) {
   assert.match(css, /--djy-color-bg-surface/u);
   assert.match(css, /\.djy-text-field__input/u);
   assert.match(css, /\.djy-button/u);
+  assert.match(css, /\.djy-icon-button/u);
+  assert.match(css, /\.djy-button--outline/u);
+  assert.match(css, /\.djy-button--danger/u);
+  assert.match(css, /--djy-size-control-lg/u);
 }
 
 async function getInputStyles(input) {
@@ -108,6 +112,24 @@ async function getInputStyles(input) {
       outlineWidth: style.outlineWidth,
     };
   });
+}
+
+async function assertColor(locator, property, token) {
+  await locator.evaluate(
+    async (element, { property, token }) => {
+      // Wait for CSS transitions to settle, then resolve the token in this element's scope.
+      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      const probe = document.createElement("span");
+      probe.style.color = `var(${token})`;
+      element.append(probe);
+      const expected = getComputedStyle(probe).color;
+      probe.remove();
+      const actual = getComputedStyle(element)[property];
+      if (actual !== expected)
+        throw new Error(`${property}: expected ${expected}, received ${actual}`);
+    },
+    { property, token },
+  );
 }
 
 async function checkBrowser(consumerDirectory) {
@@ -183,6 +205,173 @@ async function checkBrowser(consumerDirectory) {
       "dark",
     );
 
+    const icon = page.getByRole("button", { name: "Delete item", exact: true });
+    const actions = page.getByTestId("actions");
+    await page.getByRole("button", { name: "Preview profile" }).click();
+    assert.equal(await actions.textContent(), "Actions: 1");
+    await icon.click();
+    await icon.press("Enter");
+    await icon.press("Space");
+    assert.equal(await actions.textContent(), "Actions: 4");
+    assert.equal(await icon.getAttribute("data-ref"), "received");
+    assert.equal(await icon.getAttribute("type"), "button");
+    assert.equal(await icon.getAttribute("name"), "intent");
+    assert.equal(await icon.getAttribute("value"), "delete");
+    const iconStyle = await icon.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { width: style.width, height: style.height, radius: style.borderRadius };
+    });
+    assert.deepEqual(iconStyle, { width: "52px", height: "52px", radius: "12px" });
+
+    // Native default buttons must not submit the form, even with valid changed input.
+    await input.fill("Grace Hopper");
+    await icon.click();
+    await page.getByRole("button", { name: "Preview profile" }).click();
+    assert.equal(await status.textContent(), "Saved Ada Lovelace");
+    let count = 6;
+    for (const toggle of ["Toggle disabled", "Toggle loading"]) {
+      await page.getByRole("button", { name: toggle }).click();
+      assert.equal(await icon.isDisabled(), true);
+      // A physical pointer click reaches the disabled element without Playwright's enabled wait.
+      const bounds = await icon.boundingBox();
+      assert.ok(bounds);
+      await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+      assert.equal(await actions.textContent(), `Actions: ${count}`);
+      if (toggle === "Toggle loading") {
+        assert.equal(await icon.getAttribute("aria-busy"), "true");
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        assert.equal(
+          await icon
+            .locator(".djy-button__spinner")
+            .evaluate((element) => getComputedStyle(element).animationName),
+          "none",
+        );
+      }
+      await page.getByRole("button", { name: toggle }).click();
+      assert.equal(await icon.isDisabled(), false);
+      await icon.click();
+      count += 1;
+      assert.equal(await actions.textContent(), `Actions: ${count}`);
+    }
+
+    for (const theme of ["light", "dark"]) {
+      await page.locator("html").evaluate((element, value) => {
+        element.dataset.theme = value;
+      }, theme);
+      for (const tone of ["default", "danger"]) {
+        for (const variant of ["primary", "secondary", "outline", "ghost"]) {
+          const button = page.getByTestId(`${tone}-${variant}`);
+          const family = tone === "danger" ? "critical" : "brand";
+          const background =
+            variant === "primary"
+              ? `${family}-solid`
+              : variant === "secondary"
+                ? `${tone === "danger" ? "critical" : "neutral"}-weak`
+                : "transparent";
+          const state =
+            tone === "danger" && ["outline", "ghost"].includes(variant)
+              ? "critical-weak"
+              : background;
+          await assertColor(button, "backgroundColor", `--djy-color-bg-${background}`);
+          await button.hover();
+          await assertColor(button, "backgroundColor", `--djy-color-bg-${state}-hover`);
+          await page.mouse.down();
+          try {
+            await assertColor(button, "backgroundColor", `--djy-color-bg-${state}-pressed`);
+            assert.equal(
+              await button.evaluate((element) => getComputedStyle(element).transform),
+              "none",
+            );
+          } finally {
+            await page.mouse.up();
+          }
+          await page.mouse.move(0, 0);
+        }
+      }
+      for (const id of ["neutral-primary", "neutral-icon"]) {
+        const neutral = page.getByTestId(id);
+        await assertColor(neutral, "backgroundColor", "--djy-color-bg-neutral-solid");
+        await neutral.hover();
+        await assertColor(neutral, "backgroundColor", "--djy-color-bg-neutral-solid-hover");
+        await page.mouse.down();
+        try {
+          await assertColor(neutral, "backgroundColor", "--djy-color-bg-neutral-solid-pressed");
+        } finally {
+          await page.mouse.up();
+        }
+        await page.mouse.move(0, 0);
+      }
+      await assertColor(
+        page.getByTestId("neutral-danger"),
+        "backgroundColor",
+        "--djy-color-bg-critical-solid",
+      );
+      await assertColor(
+        page.getByTestId("default-primary"),
+        "backgroundColor",
+        "--djy-color-bg-brand-solid",
+      );
+    }
+
+    for (const viewport of [
+      { width: 390, height: 844 },
+      { width: 1280, height: 800 },
+    ]) {
+      await page.setViewportSize(viewport);
+      for (const [rootSize, zoom] of [
+        ["16px", "1"],
+        ["32px", "1"],
+        ["16px", "2"],
+      ]) {
+        await page.locator("html").evaluate(
+          (element, { fontSize, zoom }) => {
+            element.style.fontSize = fontSize;
+            element.style.zoom = zoom;
+          },
+          { fontSize: rootSize, zoom },
+        );
+        const dimensions = await page.getByTestId("long-label").evaluate((element) => ({
+          width: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+          height: element.clientHeight,
+          scrollHeight: element.scrollHeight,
+        }));
+        assert.ok(dimensions.scrollWidth <= dimensions.width);
+        assert.ok(dimensions.scrollHeight <= dimensions.height);
+        assert.equal(
+          await icon.evaluate((element) => element.getBoundingClientRect().width),
+          (rootSize === "16px" ? 52 : 104) * Number(zoom),
+        );
+        const overflowing = await page.evaluate(() =>
+          Array.from(document.querySelectorAll("body *"))
+            .filter((element) => element.getBoundingClientRect().right > window.innerWidth)
+            .map(
+              (element) =>
+                `${element.tagName}.${element.className}: ${element.textContent?.slice(0, 60)}`,
+            ),
+        );
+        const pageOverflow = await page.locator("html").evaluate((element) => ({
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth,
+          textOverflow: Array.from(document.querySelectorAll("body *"))
+            .filter(
+              (child) =>
+                !child.classList.contains("djy-sr-only") && child.scrollWidth > child.clientWidth,
+            )
+            .map(
+              (child) =>
+                `${child.tagName}.${child.className}: ${child.scrollWidth}/${child.clientWidth}`,
+            ),
+        }));
+        if (overflowing.length || pageOverflow.scrollWidth > pageOverflow.clientWidth)
+          await page.screenshot({ path: "/tmp/button-consumer-overflow.png", fullPage: true });
+        assert.deepEqual(overflowing, [], `${viewport.width}px, root ${rootSize}, zoom ${zoom}`);
+        assert.ok(
+          pageOverflow.scrollWidth <= pageOverflow.clientWidth,
+          JSON.stringify({ viewport, rootSize, zoom, ...pageOverflow }),
+        );
+      }
+    }
     assert.deepEqual(runtimeErrors, []);
   } finally {
     await browser?.close();

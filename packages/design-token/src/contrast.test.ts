@@ -79,3 +79,72 @@ describe("semantic color contrast", () => {
     expectAccessiblePairs(darkThemeTokens);
   });
 });
+
+// Transparent state colors are composited over the actual surrounding surface.
+function composite(color: string, surface: string) {
+  if (color === "transparent") return surface;
+  if (color.startsWith("#")) return color;
+  const match = color.match(/^rgb\((\d+) (\d+) (\d+) \/ (\d+)%\)$/u);
+  if (!match) throw new Error(`Unsupported color: ${color}`);
+  const alpha = Number(match[4]) / 100;
+  return `#${[1, 2, 3]
+    .map((index) => {
+      const backdrop = Number.parseInt(surface.slice(1 + (index - 1) * 2, 3 + (index - 1) * 2), 16);
+      return Math.round(Number(match[index]) * alpha + backdrop * (1 - alpha))
+        .toString(16)
+        .padStart(2, "0");
+    })
+    .join("")}`;
+}
+
+describe("Button and IconButton contrast", () => {
+  for (const [theme, tokens] of Object.entries({
+    light: lightThemeTokens,
+    dark: darkThemeTokens,
+  })) {
+    it(`keeps enabled text, icons, outline and focus readable in ${theme}`, () => {
+      for (const surface of [
+        tokens["color-bg-canvas"],
+        tokens["color-bg-surface"],
+        tokens["color-bg-elevated"],
+      ]) {
+        expect(contrast(tokens["color-stroke-focus"], surface)).toBeGreaterThanOrEqual(3);
+        for (const tone of ["default", "danger", "neutral-theme"] as const) {
+          for (const variant of ["primary", "secondary", "outline", "ghost"] as const) {
+            const family =
+              tone === "danger" ? "critical" : tone === "neutral-theme" ? "neutral" : "brand";
+            const fg =
+              variant === "primary"
+                ? tokens[`color-fg-on-${family}`]
+                : tokens[tone === "danger" ? "color-fg-critical" : "color-fg-neutral"];
+            for (const state of ["", "-hover", "-pressed"] as const) {
+              const background =
+                variant === "primary"
+                  ? tokens[`color-bg-${family}-solid${state}`]
+                  : variant === "secondary" || (tone === "danger" && state !== "")
+                    ? tokens[`color-bg-${tone === "danger" ? "critical" : "neutral"}-weak${state}`]
+                    : tokens[`color-bg-transparent${state}`];
+              const renderedBackground = composite(background, surface);
+              const label = `${theme}/${tone}/${variant}/${state || "rest"}`;
+              // 4.5:1 also exceeds the 3:1 icon requirement.
+              expect(contrast(fg, renderedBackground), label).toBeGreaterThanOrEqual(4.5);
+              if (variant === "outline") {
+                const border =
+                  tokens[
+                    tone === "danger" ? "color-stroke-critical-solid" : "color-stroke-neutral-solid"
+                  ];
+                expect(contrast(border, surface), `${label} outer border`).toBeGreaterThanOrEqual(
+                  3,
+                );
+                expect(
+                  contrast(border, renderedBackground),
+                  `${label} inner border`,
+                ).toBeGreaterThanOrEqual(3);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+});

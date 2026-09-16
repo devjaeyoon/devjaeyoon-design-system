@@ -22,7 +22,7 @@ const dark = await exportResolved(packageRoot, ["primitive", "dark"]);
 const primitiveTokens = resolvedNestedMap(resolvedTokensFromFile(core, "primitive.json"));
 const coreSemanticTokens = resolvedTokensFromFile(core, "semantic.json");
 const semanticTokens = {
-  ...resolvedFlatMap(coreSemanticTokens.filter((token) => token.path[0] === "space")),
+  ...resolvedFlatMap(coreSemanticTokens.filter((token) => token.$type === "dimension")),
   ...resolvedFlatMap(resolvedTokensFromFile(core, "preferred.json")),
 };
 const textStyles = resolvedFlatMap(
