@@ -422,5 +422,31 @@
         }
       }
     }
+  },
+  "radius": {
+    "control": {
+      "$type": "dimension",
+      "$value": "{radius.12}",
+      "$description": "Shared button control radius."
+    }
+  },
+  "size": {
+    "control": {
+      "sm": {
+        "$type": "dimension",
+        "$value": "{size.32}",
+        "$description": "sm button minimum height and icon button size."
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": "{size.40}",
+        "$description": "md button minimum height and icon button size."
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": "{size.52}",
+        "$description": "lg button minimum height and icon button size."
+      }
+    }
   }
 }

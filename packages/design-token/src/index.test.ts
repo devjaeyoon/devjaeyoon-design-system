@@ -74,6 +74,15 @@ describe("resolved design-token API", () => {
     ).toBe(false);
   });
 
+  it("exports shared control dimensions in rem", () => {
+    expect(semanticTokens).toMatchObject({
+      "radius-control": "0.75rem",
+      "size-control-sm": "2rem",
+      "size-control-md": "2.5rem",
+      "size-control-lg": "3.25rem",
+    });
+  });
+
   it("exposes the preferred semantic motion values", () => {
     expect(semanticTokens).toMatchObject({
       "motion-duration-enter": "200ms",

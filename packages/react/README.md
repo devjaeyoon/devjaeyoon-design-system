@@ -12,6 +12,20 @@ export function Example() {
 }
 ```
 
+`Button`은 `primary`(기본값), `secondary`, `outline`, `ghost`와 독립적인
+`tone="default" | "danger"`를 제공한다. `startIcon`·`endIcon`에는 ReactNode를 전달한다.
+`IconButton`은 아이콘을 children으로 받고 행동을 설명하는 문자열 `aria-label`이 필수이며,
+기본 variant는 `ghost`다. 두 컴포넌트의 기본 size는 `medium`, type은 `button`이다.
+`ButtonProps`, `ButtonSize`, `ButtonVariant`, `ButtonTone`, `IconButtonProps`를 export한다.
+
+두 버튼은 12px 모서리와 small/medium/large의 32/40/52px 크기를 공유한다. Button은 최소
+높이로 줄바꿈을 허용하고 IconButton은 정사각형이다. 너비·여백은 className/style로 지정한다.
+`loading`은 native disabled와 aria-busy를 적용하면서 원래 색상과 행동 이름을 유지한다.
+`loadingLabel`의 기본값은 “처리 중”이며 비동기 실행과 완료 알림은 소비자가 관리한다.
+
+[Button·IconButton 가이드](https://devjaeyoon.github.io/devjaeyoon-design-system/components/button/)에서
+역할 선택, 접근성, 상태와 서비스별 색상 설정을 확인할 수 있다.
+
 `TextField`는 레이블·설명·오류를 native input에 연결한다. 값 관리와 검증은 폼에서 담당하며,
 `value`/`onChange` 또는 `defaultValue`를 사용할 수 있다.
 

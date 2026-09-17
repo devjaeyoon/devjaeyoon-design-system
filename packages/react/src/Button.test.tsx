@@ -16,6 +16,6 @@ describe("Button", () => {
 
     expect(markup).toContain('aria-busy="true"');
     expect(markup).toContain("disabled");
-    expect(markup).toContain("Loading");
+    expect(markup).toContain("처리 중");
   });
 });

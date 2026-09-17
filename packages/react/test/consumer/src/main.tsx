@@ -2,10 +2,13 @@ import { applyThemePreference } from "@devjaeyoon-design-system/css";
 import {
   Button,
   type ButtonProps,
+  type ButtonTone,
+  IconButton,
+  type IconButtonProps,
   TextField,
   type TextFieldProps,
 } from "@devjaeyoon-design-system/react";
-import { StrictMode, useEffect, useRef, useState } from "react";
+import { type CSSProperties, StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 type Theme = "light" | "dark";
@@ -39,6 +42,33 @@ function ConsumerApp() {
     value: "save",
   };
 
+  const [actions, setActions] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const actionRef = useRef<HTMLButtonElement>(null);
+  const tone: ButtonTone = "danger";
+  const actionProps: IconButtonProps = {
+    "aria-label": "Delete item",
+    children: (
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    ),
+    loading,
+    disabled,
+    loadingLabel: "Deleting item",
+    variant: "outline",
+    tone,
+    size: "large",
+    ref: actionRef,
+    name: "intent",
+    value: "delete",
+    onClick: () => {
+      setActions((value) => value + 1);
+      actionRef.current?.setAttribute("data-ref", "received");
+    },
+  };
+
   return (
     <main
       style={{
@@ -49,7 +79,7 @@ function ConsumerApp() {
         padding: "var(--djy-space-6)",
       }}
     >
-      <h1>Installed package consumer</h1>
+      <h1 style={{ overflowWrap: "anywhere" }}>Installed package consumer</h1>
       <Button
         onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
         type="button"
@@ -71,7 +101,57 @@ function ConsumerApp() {
       >
         <TextField {...fieldProps} />
         <Button {...submitProps} />
+        <Button variant="outline" onClick={() => setActions((value) => value + 1)}>
+          Preview profile
+        </Button>
+        <IconButton {...actionProps} />
       </form>
+      <Button variant="secondary" onClick={() => setLoading((value) => !value)}>
+        Toggle loading
+      </Button>
+      <Button variant="secondary" onClick={() => setDisabled((value) => !value)}>
+        Toggle disabled
+      </Button>
+      <section
+        aria-label="Button states"
+        style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}
+      >
+        {(["default", "danger"] as const).map((tone) =>
+          (["primary", "secondary", "outline", "ghost"] as const).map((variant) => (
+            <Button
+              key={`${tone}-${variant}`}
+              tone={tone}
+              variant={variant}
+              data-testid={`${tone}-${variant}`}
+            >
+              {tone} {variant}
+            </Button>
+          )),
+        )}
+      </section>
+      <section
+        aria-label="Neutral theme"
+        style={
+          {
+            "--djy-color-bg-brand-solid": "var(--djy-color-bg-neutral-solid)",
+            "--djy-color-bg-brand-solid-hover": "var(--djy-color-bg-neutral-solid-hover)",
+            "--djy-color-bg-brand-solid-pressed": "var(--djy-color-bg-neutral-solid-pressed)",
+            "--djy-color-fg-on-brand": "var(--djy-color-fg-on-neutral)",
+          } as CSSProperties
+        }
+      >
+        <Button data-testid="neutral-primary">Neutral save</Button>
+        <IconButton aria-label="Neutral add" variant="primary" data-testid="neutral-icon">
+          <span>+</span>
+        </IconButton>
+        <Button data-testid="neutral-danger" tone="danger">
+          Neutral delete
+        </Button>
+      </section>
+      <p data-testid="actions">Actions: {actions}</p>
+      <Button data-testid="long-label" size="large" style={{ width: "100%", maxWidth: "20rem" }}>
+        Review and save all changes to the selected items before continuing to the next step
+      </Button>
       <p aria-live="polite" role="status">
         {submittedName ? `Saved ${submittedName}` : "No profile saved yet."}
       </p>

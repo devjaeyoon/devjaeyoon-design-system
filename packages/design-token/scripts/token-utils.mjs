@@ -201,6 +201,8 @@ function validateSemanticName(fileName, name) {
     "preferred.json": [/^motion-(?:duration|easing)-(?:feedback|enter|exit)$/u],
     "reduced.json": [/^motion-(?:duration|easing)-(?:feedback|enter|exit)$/u],
     "semantic.json": [
+      /^radius-control$/u,
+      /^size-control-(?:sm|md|lg)$/u,
       /^space-layout-(?:gutter|section-(?:sm|md|lg))$/u,
       /^space-content-stack-(?:sm|md|lg)$/u,
       /^typography-(?:display|heading)-(?:lg|md|sm)-strong$/u,
@@ -381,6 +383,10 @@ export function validateCatalog(trees) {
     ),
   ];
   const expectedCoreNames = [
+    "radius-control",
+    "size-control-sm",
+    "size-control-md",
+    "size-control-lg",
     "space-layout-gutter",
     "space-layout-section-sm",
     "space-layout-section-md",

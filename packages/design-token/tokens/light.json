@@ -279,7 +279,7 @@
           },
           "pressed": {
             "$type": "color",
-            "$value": "{color.palette.red.200}",
+            "$value": "{color.palette.red.150}",
             "$description": "Pressed critical weak background (light theme)."
           }
         }

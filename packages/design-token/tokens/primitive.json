@@ -247,6 +247,16 @@
           },
           "$description": "red palette step 100."
         },
+        "150": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.996078, 0.839216, 0.839216],
+            "alpha": 1,
+            "hex": "#fed6d6"
+          },
+          "$description": "Red palette step 150 for accessible critical weak pressed states."
+        },
         "200": {
           "$type": "color",
           "$value": {
@@ -316,6 +326,16 @@
             "hex": "#991b1b"
           },
           "$description": "red palette step 800."
+        },
+        "850": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [0.54902, 0.109804, 0.109804],
+            "alpha": 1,
+            "hex": "#8c1c1c"
+          },
+          "$description": "Red palette step 850 for accessible critical weak pressed states."
         },
         "900": {
           "$type": "color",
@@ -1085,6 +1105,42 @@
         "$value": [0.4, 0, 1, 1],
         "$description": "Exit easing."
       }
+    }
+  },
+  "radius": {
+    "12": {
+      "$type": "dimension",
+      "$value": {
+        "value": 0.75,
+        "unit": "rem"
+      },
+      "$description": "12px control radius expressed in rem."
+    }
+  },
+  "size": {
+    "32": {
+      "$type": "dimension",
+      "$value": {
+        "value": 2.0,
+        "unit": "rem"
+      },
+      "$description": "32px control size expressed in rem."
+    },
+    "40": {
+      "$type": "dimension",
+      "$value": {
+        "value": 2.5,
+        "unit": "rem"
+      },
+      "$description": "40px control size expressed in rem."
+    },
+    "52": {
+      "$type": "dimension",
+      "$value": {
+        "value": 3.25,
+        "unit": "rem"
+      },
+      "$description": "52px control size expressed in rem."
     }
   }
 }
