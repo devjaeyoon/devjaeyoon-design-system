@@ -9,5 +9,8 @@ Starlight 기반 한국어 가이드와 `@storybook/react-vite` 기반 컴포넌
 
 - 문서는 역할 중심 도메인으로 분리하고, 새로운 문서 영역 추가 시 sidebar 매핑을 갱신한다.
 - MDX 파일명은 `kebab-case`를 사용하고 문서는 한국어를 기본으로 작성한다.
-- 컴포넌트 상태·controls·interaction은 Storybook에 두고 Starlight에 중복 작성하지 않는다.
+- Starlight 원칙 문서는 공통 기준과 이유를, 컴포넌트 문서는 선택 기준·기본값·상태별 동작을
+  포함한 API 계약과 소비자의 책임을 설명한다. 사용 계약 설명과 최소 사용 예제를 허용한다.
+- 상태·variant의 시각적 조합, controls, 상태 전환·키보드 조작 예제와 자동 검증은 Storybook에
+  둔다. 전체 상태 갤러리와 상호작용 예제는 Starlight에 중복 구현하지 않고 링크한다.
 - 모든 story는 기본 렌더링과 axe 검사를 통과해야 하며 상호작용은 `play`로 검증한다.

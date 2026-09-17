@@ -58,9 +58,13 @@ Biome가 format, lint, import 정리를 담당한다. ESLint와 Prettier는 사�
 
 ## 문서와 Storybook
 
-Starlight는 한국어 개념·설치·foundation·원칙·접근성·사용 가이드를 담당한다. Storybook은
-variant, controls, interaction, light/dark, axe 검사를 담당한다. `parameters.a11y.test` 기본값은
-`error`다. Storybook 내용은 Starlight에 복제하지 않고 링크한다.
+Starlight는 한국어 개념·설치·foundation·원칙·접근성·사용 가이드를 담당한다. 원칙 문서는 공통
+기준과 이유를, 컴포넌트 문서는 선택 기준·기본값·상태별 동작을 포함한 API 계약과 소비자의
+책임을 설명한다. 사용 계약 설명과 최소 사용 예제는 Starlight에 둔다.
+
+Storybook은 상태·variant의 시각적 조합, controls, 상태 전환·키보드 조작 예제와 자동 검증을
+담당한다. 전체 상태 갤러리와 상호작용 예제는 Starlight에 중복 구현하지 않고 링크한다.
+light/dark와 axe 검사도 Storybook에서 수행하며 `parameters.a11y.test` 기본값은 `error`다.
 
 Pages base path는 `/devjaeyoon-design-system/`, Storybook production base는
 `/devjaeyoon-design-system/storybook/`이다. `build:pages`가 두 정적 산출물을 하나의

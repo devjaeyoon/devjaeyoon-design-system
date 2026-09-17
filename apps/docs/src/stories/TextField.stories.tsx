@@ -136,6 +136,7 @@ export const AutomaticIds: Story = {
 };
 
 export const KeyboardNavigation: Story = {
+  globals: { theme: "light" },
   render: () => (
     <>
       <TextField label="이름" />
@@ -149,9 +150,23 @@ export const KeyboardNavigation: Story = {
     const name = canvas.getByRole("textbox", { name: "이름" });
     const disabled = canvas.getByRole("textbox", { name: "비활성" });
     const readOnly = canvas.getByRole("textbox", { name: "읽기 전용" });
+    async function expectKeyboardFocus(input: HTMLElement) {
+      await expect(input).toHaveFocus();
+      await expect(input.matches(":focus-visible")).toBe(true);
+      const style = getComputedStyle(input);
+      await expect(style.outlineStyle).toBe("solid");
+      await expect(style.outlineWidth).toBe("3px");
+      await expect(style.outlineOffset).toBe("2px");
+      const probe = document.createElement("span");
+      probe.style.color = "var(--djy-color-stroke-focus)";
+      input.insertAdjacentElement("afterend", probe);
+      const focusColor = getComputedStyle(probe).color;
+      probe.remove();
+      await expect(style.outlineColor).toBe(focusColor);
+    }
     name.focus();
     await userEvent.tab();
-    await expect(readOnly).toHaveFocus();
+    await expectKeyboardFocus(readOnly);
     await expect(readOnly).toHaveAttribute("readonly");
     await userEvent.keyboard("변경");
     await expect(readOnly).toHaveValue("읽기 전용 값");
@@ -160,13 +175,20 @@ export const KeyboardNavigation: Story = {
     await expect(readOnly.selectionStart).toBe(0);
     await expect(readOnly.selectionEnd).toBe(readOnly.value.length);
     await userEvent.tab();
-    await expect(canvas.getByRole("textbox", { name: "이메일" })).toHaveFocus();
+    await expectKeyboardFocus(canvas.getByRole("textbox", { name: "이메일" }));
     await userEvent.tab({ shift: true });
-    await expect(readOnly).toHaveFocus();
+    await expectKeyboardFocus(readOnly);
+    await userEvent.tab({ shift: true });
+    await expectKeyboardFocus(name);
     await expect(disabled).toBeDisabled();
     await userEvent.type(disabled, "변경");
     await expect(disabled).toHaveValue("비활성 값");
   },
+};
+
+export const DarkKeyboardNavigation: Story = {
+  ...KeyboardNavigation,
+  globals: { theme: "dark" },
 };
 
 function FieldStates() {

@@ -1,7 +1,7 @@
 import type { ButtonProps } from "@devjaeyoon-design-system/react";
 import { Button, IconButton } from "@devjaeyoon-design-system/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { type CSSProperties, createRef, useState } from "react";
+import { type CSSProperties, createRef, useId, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 const buttonRowStyle: CSSProperties = {
@@ -519,18 +519,35 @@ export const NativeContract: Story = {
 function StateControls({ onAction }: { onAction: ButtonProps["onClick"] }) {
   const [disabled, setDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const descriptionId = useId();
   return (
     <div style={buttonRowStyle}>
+      <p id={descriptionId} style={{ flexBasis: "100%", margin: 0 }}>
+        선택 항목에 적용합니다.
+      </p>
       <Button onClick={() => setDisabled((value) => !value)} variant="secondary">
         비활성 전환
       </Button>
       <Button onClick={() => setLoading((value) => !value)} variant="secondary">
         로딩 전환
       </Button>
-      <Button disabled={disabled} loading={loading} onClick={onAction}>
+      <Button
+        aria-describedby={descriptionId}
+        disabled={disabled}
+        loading={loading}
+        loadingLabel="작업 처리 중"
+        onClick={onAction}
+      >
         실행
       </Button>
-      <IconButton aria-label="아이콘 실행" disabled={disabled} loading={loading} onClick={onAction}>
+      <IconButton
+        aria-describedby={descriptionId}
+        aria-label="아이콘 실행"
+        disabled={disabled}
+        loading={loading}
+        loadingLabel="아이콘 작업 처리 중"
+        onClick={onAction}
+      >
         <ExampleIcon />
       </IconButton>
     </div>
@@ -539,16 +556,50 @@ function StateControls({ onAction }: { onAction: ButtonProps["onClick"] }) {
 
 export const StateTransitions: Story = {
   args: { onClick: fn() },
+  globals: { theme: "light" },
   render: (args) => <StateControls onAction={args.onClick} />,
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
     const action = canvas.getByRole("button", { name: "실행" });
     const icon = canvas.getByRole("button", { name: "아이콘 실행" });
+    const description = canvas.getByText("선택 항목에 적용합니다.");
+    const buttons = [
+      { button: action, name: "실행", loadingLabel: "작업 처리 중" },
+      { button: icon, name: "아이콘 실행", loadingLabel: "아이콘 작업 처리 중" },
+    ];
+    for (const { button, name } of buttons) {
+      await expect(button).toHaveAccessibleName(name);
+      await expect(button).toHaveAccessibleDescription("선택 항목에 적용합니다.");
+      await expect(button).toHaveAttribute("aria-describedby", description.id);
+    }
     let calls = 0;
     for (const toggle of ["비활성 전환", "로딩 전환"]) {
+      const loadingRegions: HTMLElement[] = [];
       await userEvent.click(canvas.getByRole("button", { name: toggle }));
-      for (const button of [action, icon]) {
+      for (const { button, name, loadingLabel } of buttons) {
         await expect(button).toBeDisabled();
+        await expect(button).toHaveAccessibleName(name);
+        if (toggle === "로딩 전환") {
+          await expect(button).toHaveAttribute("aria-busy", "true");
+          await expect(button).toHaveAccessibleDescription(
+            `선택 항목에 적용합니다. ${loadingLabel}`,
+          );
+          const statusId = button
+            .getAttribute("aria-describedby")
+            ?.split(/\s+/u)
+            .find((id) => id !== description.id);
+          const region = statusId ? document.getElementById(statusId) : null;
+          if (!region) throw new Error("Expected a connected loading live region");
+          await expect(canvasElement).toContainElement(region);
+          await expect(button).not.toContainElement(region);
+          await expect(region).toHaveAttribute("aria-live", "polite");
+          await expect(region).toHaveTextContent(loadingLabel);
+          loadingRegions.push(region);
+        } else {
+          await expect(button).not.toHaveAttribute("aria-busy");
+          await expect(button).toHaveAccessibleDescription("선택 항목에 적용합니다.");
+          await expect(button).toHaveAttribute("aria-describedby", description.id);
+        }
         await userEvent.click(button);
         await expect(args.onClick).toHaveBeenCalledTimes(calls);
         const background =
@@ -556,13 +607,21 @@ export const StateTransitions: Story = {
         await expectColor(button, "backgroundColor", `--djy-color-bg-${background}`);
       }
       await userEvent.click(canvas.getByRole("button", { name: toggle }));
-      for (const button of [action, icon]) {
+      for (const { button, name } of buttons) {
         await expect(button).not.toBeDisabled();
+        await expect(button).toHaveAccessibleName(name);
+        await expect(button).not.toHaveAttribute("aria-busy");
+        await expect(button).toHaveAccessibleDescription("선택 항목에 적용합니다.");
+        await expect(button).toHaveAttribute("aria-describedby", description.id);
         await userEvent.click(button);
         await userEvent.keyboard("{Enter}");
         await userEvent.keyboard(" ");
         calls += 3;
         await expect(args.onClick).toHaveBeenCalledTimes(calls);
+      }
+      for (const region of loadingRegions) {
+        await expect(region).toBeInTheDocument();
+        await expect(region).toBeEmptyDOMElement();
       }
     }
     await userEvent.unhover(icon);

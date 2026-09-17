@@ -10,6 +10,8 @@ import { TextField } from "@devjaeyoon-design-system/react";
 
 <TextField label="이메일" type="email" description="연락받을 주소를 입력해 주세요." />
 
+## 기본 사용
+
 ```tsx
 import "@devjaeyoon-design-system/css";
 import { TextField } from "@devjaeyoon-design-system/react";
@@ -33,10 +35,14 @@ export function EmailField() {
 }
 ```
 
+## 기본값과 native props
+
 `label`은 필수 문자열입니다. `type`은 `text`(기본값), `email`, `password`, `search`, `tel`,
 `url`을 지원합니다. `defaultValue`로 uncontrolled 입력을 만들 수 있으며, `required`,
 `disabled`, `readOnly`, 숫자형 `size` 등 native input props를 그대로 전달합니다.
 `size`는 HTML 입력의 문자 수 기준 너비 속성입니다.
+
+## 크기와 배치
 
 `ref`, `className`, `style`은 실제 input에 적용됩니다. 필드 전체의 너비나 바깥 여백은
 소비자가 감싸는 요소에서 조절합니다. React 패키지는 `TextFieldProps`, `TextFieldType`도 export합니다.
@@ -47,16 +53,28 @@ export function EmailField() {
 </div>
 ```
 
+## 이름과 오류 안내
+
 `id`를 생략하면 자동으로 생성하며, 전달하면 그대로 레이블에 연결합니다. `required`인 경우
 레이블에 “(필수)”를 표시합니다. placeholder는 입력 예시로 사용하고 레이블 대신 사용하지 않습니다.
 
 `description`과 비어 있지 않은 `error`는 함께 표시되며, 해당 ID를 외부 `aria-describedby`와
 중복 없이 합칩니다. 오류가 있으면 `aria-invalid`는 `true`가 되고, 오류가 없으면 소비자가
-전달한 값을 유지합니다. TextField는 오류를 자동으로 읽어 주거나 포커스를 옮기지 않으므로
-폼에서 제출 후 첫 오류 필드의 포커스와 저장 결과 안내를 처리합니다.
+전달한 값을 유지합니다.
+
+컴포넌트는 레이블·설명·오류의 연결과 오류 상태 표시를 제공합니다. 유효성 검사와 오류 문구는
+폼이 결정합니다. TextField는 오류 발생 시 별도 live region 안내나 포커스 이동을 수행하지
+않으므로 폼에서 제출 후 첫 오류 필드로 포커스를 옮기고 저장 결과를 안내합니다.
+
+## 키보드와 입력 상태
+
+키보드 포커스를 받으면 focus-visible에 3px 실선 외곽선과 2px 간격을 표시합니다.
+포커스 색상은 light/dark 테마의 `color-stroke-focus` 토큰을 사용합니다.
 
 `disabled`는 입력과 Tab 접근을 막습니다. `readOnly`는 편집만 막으므로 포커스와 텍스트 선택을
 유지해야 할 때 사용합니다.
+
+## 예제와 검증
 
 상태와 키보드 상호작용은
 [TextField Storybook](https://devjaeyoon.github.io/devjaeyoon-design-system/storybook/?path=/story/components-textfield--default)에서 확인합니다.
