@@ -73,9 +73,13 @@ solid/on-intent, weak/intent-foreground, 중립 본문 조합은 light와 dark�
 - `informative`: 중립적인 정보와 안내
 
 interactive 배경은 기본 → `-hover` → `-pressed`를 사용합니다. CSS `:active`는 `-pressed`에
-연결합니다. disabled 요소는 `color-fg-disabled`, `color-bg-disabled`,
-`color-stroke-disabled`를 함께 사용하며 opacity로 상태를 계산하지 않습니다. focus indicator는
-`color-stroke-focus`를 사용합니다.
+연결합니다. 일반 비활성 상태는 `color-fg-disabled`, `color-bg-disabled`,
+`color-stroke-disabled`를 함께 사용하며 opacity로 상태를 계산하지 않습니다.
+
+HTML `disabled`는 상호작용을 차단하는 수단이며, 항상 비활성 색상을 뜻하지는 않습니다.
+Button과 IconButton은 loading 중에도 native `disabled`를 사용하지만 원래 variant 색상을
+유지하고 스피너와 처리 상태 안내를 제공합니다. 일반 비활성 상태와 loading 모두 hover·pressed
+색상은 적용하지 않습니다. focus indicator는 `color-stroke-focus`를 사용합니다.
 
 ## Typography
 

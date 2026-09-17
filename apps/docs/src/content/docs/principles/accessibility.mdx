@@ -5,12 +5,37 @@ description: 키보드, 의미 구조, 색상, 자동 검사 원칙
 
 접근성은 별도 기능이 아니라 컴포넌트 공개 계약의 일부입니다.
 
+## 공통 기준
+
 - native HTML 의미와 keyboard behavior를 우선합니다.
 - focus-visible 상태를 제거하지 않고 테마별로 충분히 구분합니다.
 - 상태를 색상 하나로만 전달하지 않습니다.
-- loading과 disabled 상태의 이름과 상호작용 가능 여부를 일치시킵니다.
 - `prefers-reduced-motion` 환경에서 불필요한 애니메이션을 최소화합니다.
+
+## 이름, 상태, 동작
+
+- 접근성 이름은 컨트롤이 수행하는 행동이나 입력의 목적을 설명합니다.
+- loading·disabled·오류 상태는 보조 기술에도 전달합니다.
+- 전달한 상태와 실제 입력·실행 가능 여부가 일치해야 합니다.
+
+Button과 IconButton은 loading 중에도 행동 이름을 유지하고, `aria-busy`와 별도 live region으로
+처리 상태를 안내합니다. `loadingLabel`은 행동 이름을 대체하는 값이 아니라 처리 상태에 대한
+설명입니다. loading과 일반 disabled는 모두 native `disabled`로 실행과 Tab 접근을 차단하지만,
+loading은 원래 variant 색상을 유지하고 일반 disabled는 비활성 색상을 사용합니다.
+
+## 컴포넌트와 애플리케이션의 책임
+
+| 대상 | 컴포넌트가 제공하는 것 | 사용하는 애플리케이션이 처리할 것 |
+| --- | --- | --- |
+| Button·IconButton | 행동 이름 유지, loading 안내, 비활성·loading 중 실행 차단 | 비동기 작업, loading 해제, 성공·실패 안내 |
+| TextField | label·설명·오류 연결, 오류 상태 표시, 키보드 포커스 표시 | 유효성 검사, 제출 후 첫 오류 필드로 포커스 이동, 저장 결과 안내 |
+
+TextField는 오류 텍스트를 입력의 설명에 연결하지만, 오류 발생 시 별도 live region 안내나
+포커스 이동을 수행하지 않습니다. 폼은 컴포넌트가 제공하는 연결을 활용해 제출 결과를 안내합니다.
+
+## 검증
 
 모든 story는 Playwright Chromium에서 렌더링되며 `play` 함수가 있으면 interaction을 실행합니다.
 Storybook의 기본 `a11y.test` 값은 `error`라서 axe 위반이 CI 실패로 이어집니다. 자동 검사는
-수동 키보드·스크린 리더 검토를 대체하지 않습니다.
+DOM, 접근성 이름·설명, 상태 전환과 계산 스타일을 확인합니다. 실제 스크린 리더 음성 출력을
+검증한 것은 아니며, 수동 키보드·스크린 리더 검토를 대체하지 않습니다.
