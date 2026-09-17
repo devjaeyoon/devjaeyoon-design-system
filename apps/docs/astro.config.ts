@@ -20,6 +20,23 @@ export default defineConfig({
         },
       },
       social: [{ icon: "github", label: "GitHub", href: repositoryUrl }],
+      head: [
+        {
+          tag: "link",
+          attrs: {
+            rel: "preconnect",
+            href: "https://cdn.jsdelivr.net",
+            crossorigin: "anonymous",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "stylesheet",
+            href: "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css",
+          },
+        },
+      ],
       customCss: ["./src/styles/starlight.css"],
       sidebar: [
         {
