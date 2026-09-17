@@ -6,6 +6,8 @@ import type { Decorator, Preview } from "@storybook/react-vite";
 const withTheme: Decorator = (Story, context) => {
   const theme = context.globals.theme === "dark" ? "dark" : "light";
   document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+  document.body.dataset.theme = theme;
 
   return (
     <div className="djy-story-canvas">

@@ -8,6 +8,12 @@ body {
   margin: 0;
   color: var(--djy-color-fg-neutral);
   background: var(--djy-color-bg-canvas);
+  font-family: var(--djy-font-family-sans);
+}
+
+::selection {
+  color: var(--djy-color-fg-neutral);
+  background: var(--djy-color-bg-brand-weak);
 }
 
 .djy-story-canvas {
@@ -16,4 +22,10 @@ body {
   padding: 2rem;
   color: var(--djy-color-fg-neutral);
   background: var(--djy-color-bg-canvas);
+}
+
+@media (max-width: 49.99rem) {
+  .djy-story-canvas {
+    padding: 1.25rem;
+  }
 }
