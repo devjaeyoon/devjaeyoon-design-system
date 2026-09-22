@@ -7,9 +7,9 @@
 
 | 패키지 | 역할 | 현재 상태 |
 | --- | --- | --- |
-| `@devjaeyoon-design-system/design-token` | primitive·semantic 토큰 ESM | `0.0.0`, private |
-| `@devjaeyoon-design-system/css` | 테마 변수와 컴포넌트 CSS | `0.0.0`, private |
-| `@devjaeyoon-design-system/react` | React 19 컴포넌트 ESM | `0.0.0`, private |
+| `@devjaeyoon-design-system/design-token` | primitive·semantic 토큰 ESM | npm 공개 준비 완료 |
+| `@devjaeyoon-design-system/css` | 테마 변수와 컴포넌트 CSS | npm 공개 준비 완료 |
+| `@devjaeyoon-design-system/react` | React 19 컴포넌트 ESM | npm 공개 준비 완료 |
 
 React 패키지는 CSS를 자동으로 불러오지 않는다.
 
@@ -65,24 +65,34 @@ Actions cache로만 재사용한다.
 fixed/linked 그룹 없이 독립 버전으로 관리한다.
 CSS가 React의 peer 범위를 벗어나면 peer 범위를 갱신하고 React를 최소 patch로 함께 올린다.
 
-저장소가 비공개인 동안 GitHub repository variable `PUBLIC_RELEASE_ENABLED`는 만들지 않거나
-`false`로 둔다. 이 상태에서는 version PR, npm publish, Pages deploy job이 모두 건너뛰어진다.
+GitHub repository variable `PUBLIC_RELEASE_ENABLED`가 `true`가 아니면 version PR, npm publish,
+Pages deploy job이 모두 건너뛰어진다. 최초 공개 설정을 모두 마친 뒤 마지막에 활성화한다.
 
 ## 최초 공개 체크리스트
 
-1. npm `@devjaeyoon-design-system` scope 소유권과 2FA를 확인한다.
-2. GitHub 저장소를 public으로 전환한다.
-3. 세 패키지에서 `private`를 제거한다.
-4. 세 패키지에 `publishConfig.access: "public"`을 추가한다.
-5. 누적 changeset을 `pnpm version-packages`로 소비한 뒤 세 패키지 버전을 각각 `0.1.0`으로
-   맞춘다.
-6. 제한된 일회성 npm token으로 각 패키지를 최초 공개한다.
-7. 각 npm 패키지에 이 저장소의 `release.yml`을 trusted publisher로 등록한다.
-8. bootstrap token과 임시 GitHub secret을 제거한다.
-9. GitHub repository variable `PUBLIC_RELEASE_ENABLED=true`를 설정한다.
+1. npm organization `devjaeyoon-design-system`의 소유권과 계정 2FA를 확인한다.
+2. GitHub 저장소가 public이고 준비 변경이 `main`에 반영됐는지 확인한다.
+3. npm에 로컬 로그인한 뒤 깨끗한 `main`에서 `pnpm check`를 실행한다.
+4. 아래 순서로 `0.0.0`을 `bootstrap` dist-tag에 최초 공개한다. `latest`는 만들지 않는다.
 
-이후 Changesets version PR을 squash merge하면 `release.yml`이 `npm` environment 승인을 기다린
-뒤 OIDC provenance로 변경된 패키지만 publish하고 package tag와 GitHub Release를 만든다.
+   ```sh
+   pnpm --dir packages/design-token publish --access public --tag bootstrap
+   pnpm --dir packages/css publish --access public --tag bootstrap
+   pnpm --dir packages/react publish --access public --tag bootstrap
+   ```
+
+5. 세 npm 패키지의 trusted publisher를 owner `devjaeyoon`, repository
+   `devjaeyoon-design-system`, workflow `release.yml`, environment `npm`으로 등록한다.
+6. GitHub `npm` environment, `main` ruleset, Pages와 repository 보안 설정을 완료한다.
+7. GitHub repository variable `PUBLIC_RELEASE_ENABLED=true`를 마지막에 설정한다.
+8. `Version packages` workflow가 만든 PR의 CI를 승인·확인하고 squash merge한다.
+9. `Release packages`의 검증 job이 성공하면 `npm` environment 배포를 승인한다. OIDC로 세
+   패키지 `0.1.0`이 `latest`에 publish되고 provenance와 GitHub Release가 생성되는지 확인한다.
+10. `bootstrap` dist-tag를 제거하고 `0.0.0`을 deprecated 처리한다.
+
+이후 Changesets version PR을 squash merge하면 `release.yml`이 패키지를 먼저 검증하고 `npm`
+environment 승인을 기다린 뒤 OIDC provenance로 변경된 패키지만 publish하고 package tag와
+GitHub Release를 만든다. 장기 npm access token이나 GitHub npm secret은 사용하지 않는다.
 
 ## GitHub 저장소 설정
 
@@ -91,7 +101,7 @@ CSS가 React의 peer 범위를 벗어나면 peer 범위를 갱신하고 React를
 - `main` ruleset: PR 필수, 승인 0명, `CI / check`와 `PR title / validate` 필수
 - squash merge만 허용하고 force push·branch deletion 차단
 - merge 후 head branch 자동 삭제
-- `npm` environment에 required reviewer 등록
+- `npm` environment에 required reviewer를 등록하고 self-review 허용
 - Pages source를 GitHub Actions로 설정
 - Renovate GitHub App을 설치하고 weekly grouped PR 설정은 `renovate.json`에 맡김
 

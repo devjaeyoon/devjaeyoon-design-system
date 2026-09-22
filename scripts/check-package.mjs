@@ -55,6 +55,18 @@ async function checkConsumer({ fixturePath, packageName, tarballPath, temporaryD
 const consumerFixturePath = getConsumerFixturePath();
 const packageManifest = JSON.parse(await readFile("package.json", "utf8"));
 
+if (packageManifest.private === true) {
+  throw new Error(`${packageManifest.name} must not be marked private.`);
+}
+
+if (packageManifest.publishConfig?.access !== "public") {
+  throw new Error(`${packageManifest.name} must set publishConfig.access to public.`);
+}
+
+if (packageManifest.publishConfig?.registry !== "https://registry.npmjs.org/") {
+  throw new Error(`${packageManifest.name} must publish to the official npm registry.`);
+}
+
 run("publint", ["--pack=false", "--strict"]);
 run("pnpm", ["pack", "--dry-run"]);
 

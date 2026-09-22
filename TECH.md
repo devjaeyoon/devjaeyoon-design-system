@@ -38,8 +38,9 @@ apps/docs/pages-dist
 
 ## 공개 패키지
 
-세 패키지는 최초 공개 전까지 `0.0.0`, `private: true`다. ESM만 Vite library mode로 build하고
-`tsc`가 선언 파일을 생성한다. CJS와 legacy bundle은 만들지 않는다.
+세 패키지는 npm에 공개하며 ESM만 Vite library mode로 build하고 `tsc`가 선언 파일을 생성한다.
+CJS와 legacy bundle은 만들지 않는다. 각 manifest는 공개 access와 공식 npm registry를
+`publishConfig`에 고정한다.
 
 - `design-token`: 플랫폼 독립 토큰과 light/dark semantic map
 - `css`: design-token build 결과를 읽어 값이 내장된 CSS와 side-effect ESM entry 생성
@@ -80,7 +81,7 @@ GitHub Action은 commit SHA로 고정한다.
 `PUBLIC_RELEASE_ENABLED`가 정확히 `true`이고 repository가 public일 때만 다음이 실행된다.
 
 - Changesets version PR
-- npm environment 승인 뒤 OIDC publish 및 GitHub Release 생성
+- 패키지 검증 성공과 npm environment 승인 뒤 OIDC publish 및 GitHub Release 생성
 - GitHub Pages deploy
 
 구체적인 최초 공개 순서와 외부 GitHub/npm 설정은 root `README.md`를 따른다.

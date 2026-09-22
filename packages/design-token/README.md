@@ -1,7 +1,6 @@
 # @devjaeyoon-design-system/design-token
 
-devjaeyoon 디자인 시스템의 DTCG 2025.10 기반 primitive 및 semantic 토큰 패키지다. 현재는
-최초 공개 전이므로 private 패키지로 유지한다.
+devjaeyoon 디자인 시스템의 DTCG 2025.10 기반 primitive 및 semantic 토큰 패키지다.
 
 ```ts
 import {
