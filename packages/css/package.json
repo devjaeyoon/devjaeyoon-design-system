@@ -1,6 +1,6 @@
 {
   "name": "@devjaeyoon-design-system/css",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Theme variables and component styles for the devjaeyoon design system",
   "type": "module",
   "types": "./dist/index.d.ts",

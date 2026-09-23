@@ -1,6 +1,6 @@
 {
   "name": "@devjaeyoon-design-system/design-token",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Design tokens for the devjaeyoon design system",
   "type": "module",
   "types": "./dist/index.d.ts",
