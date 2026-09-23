@@ -43,6 +43,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Chromium system dependencies
+        run: pnpm --filter @devjaeyoon-design-system/docs exec playwright install --with-deps chromium
+
       - name: Build and validate packages
         run: pnpm build:packages && pnpm pack:check
 
