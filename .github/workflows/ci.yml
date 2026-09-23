@@ -61,5 +61,5 @@ jobs:
         run: pnpm check
 
       - name: Check changeset coverage
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
         run: node scripts/check-changesets.mjs "origin/${{ github.base_ref }}"

@@ -1,7 +1,6 @@
 {
   "name": "@devjaeyoon-design-system/react",
   "version": "0.0.0",
-  "private": true,
   "description": "React components for the devjaeyoon design system",
   "type": "module",
   "types": "./dist/index.d.ts",
@@ -17,6 +16,10 @@
     "LICENSE",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
