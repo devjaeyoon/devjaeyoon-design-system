@@ -69,8 +69,8 @@ light/dark와 axe 검사도 Storybook에서 수행하며 `parameters.a11y.test` 
 
 Pages base path는 `/devjaeyoon-design-system/`, Storybook production base는
 `/devjaeyoon-design-system/storybook/`이다. `build:pages`가 두 정적 산출물을 하나의
-`pages-dist`로 조립하고, 모든 절대 asset·navigation URL이 저장소 base path 아래에 있는지
-검증한다.
+`pages-dist`로 조립한다. 조립된 HTML의 `href`·`src` 속성 중 단일 `/`로 시작하는 경로가
+저장소 base path 아래에 있는지 검사한다.
 
 ## CI와 release
 
@@ -84,4 +84,4 @@ GitHub Action은 commit SHA로 고정한다.
 - 패키지 검증 성공과 npm environment 승인 뒤 OIDC publish 및 GitHub Release 생성
 - GitHub Pages deploy
 
-구체적인 최초 공개 순서와 외부 GitHub/npm 설정은 root `README.md`를 따른다.
+현재 릴리스 절차와 GitHub 저장소 운영 설정은 root `README.md`를 따른다.
