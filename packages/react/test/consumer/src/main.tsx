@@ -139,7 +139,12 @@ function DialogPolicyFixture() {
       </DialogRoot>
       <DialogRoot>
         <DialogTrigger data-testid="cancel-prevented-trigger">Open guarded dialog</DialogTrigger>
-        <DialogContent onCancel={(event) => event.preventDefault()} title="Cancel prevented dialog">
+        <DialogContent
+          onCancel={(event) => {
+            if (event.cancelable) event.preventDefault();
+          }}
+          title="Cancel prevented dialog"
+        >
           <DialogBody>The consumer prevents the native cancel event.</DialogBody>
           <DialogFooter>
             <DialogClose>Close guarded dialog</DialogClose>

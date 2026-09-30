@@ -300,6 +300,7 @@ export function DialogContent({
   const pointerStartedOutsideRef = useRef<number | null>(null);
   const sessionRef = useRef<DialogSession | null>(null);
   const internalCloseEventsRef = useRef(0);
+  const cancelStateRef = useRef({ blocked: false, reopen: false });
   const pendingReturnFocusRef = useRef<{
     document: Document;
     frame: number;
@@ -320,6 +321,7 @@ export function DialogContent({
     (session: DialogSession) => {
       if (session.finalized) return;
       session.finalized = true;
+      cancelStateRef.current = { blocked: false, reopen: false };
 
       const document = session.dialog.ownerDocument;
       const view = document.defaultView;
@@ -410,6 +412,7 @@ export function DialogContent({
     const dialog = dialogRef.current;
     if (!dialog) return;
 
+    cancelStateRef.current = { blocked: false, reopen: false };
     cancelPendingReturnFocus();
     const document = dialog.ownerDocument;
     const view = document.defaultView;
@@ -524,9 +527,13 @@ export function DialogContent({
       onCancel={(event) => {
         if (event.target !== event.currentTarget) return;
         onCancel?.(event);
-        const shouldClose = !event.defaultPrevented && context.closeOnEscape;
+        const blocked =
+          event.defaultPrevented ||
+          !context.closeOnEscape ||
+          (!event.cancelable && cancelStateRef.current.blocked);
+        cancelStateRef.current = { blocked, reopen: blocked && !event.cancelable };
         event.preventDefault();
-        if (shouldClose) context.requestOpenChange(false);
+        if (!blocked) context.requestOpenChange(false);
       }}
       onClose={(event) => {
         if (event.target !== event.currentTarget) return;
@@ -535,10 +542,12 @@ export function DialogContent({
           internalCloseEventsRef.current -= 1;
           return;
         }
+        const shouldReopen = cancelStateRef.current.reopen;
         const session = sessionRef.current;
         if (session) finalizeSession(session);
         if (latestRef.current.context.open) {
-          latestRef.current.context.requestOpenChange(false);
+          if (shouldReopen) openSession();
+          else latestRef.current.context.requestOpenChange(false);
         }
       }}
       onPointerDown={(event) => {

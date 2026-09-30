@@ -244,6 +244,17 @@ async function checkBrowser(consumerDirectory) {
     await escapeDisabledDialog.waitFor({ state: "visible" });
     await page.keyboard.press("Escape");
     assert.equal(await escapeDisabledDialog.isVisible(), true);
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await page.keyboard.press("Escape");
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
+      assert.equal(await escapeDisabledDialog.isVisible(), true);
+      assert.equal(
+        await escapeDisabledDialog.evaluate((element) => element.matches(":modal")),
+        true,
+      );
+    }
     await page.getByRole("button", { name: "Close fixed dialog" }).click();
     await escapeDisabledDialog.waitFor({ state: "hidden" });
 
@@ -252,6 +263,17 @@ async function checkBrowser(consumerDirectory) {
     await cancelPreventedDialog.waitFor({ state: "visible" });
     await page.keyboard.press("Escape");
     assert.equal(await cancelPreventedDialog.isVisible(), true);
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await page.keyboard.press("Escape");
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
+      assert.equal(await cancelPreventedDialog.isVisible(), true);
+      assert.equal(
+        await cancelPreventedDialog.evaluate((element) => element.matches(":modal")),
+        true,
+      );
+    }
     await page.getByRole("button", { name: "Close guarded dialog" }).click();
     await cancelPreventedDialog.waitFor({ state: "hidden" });
 
