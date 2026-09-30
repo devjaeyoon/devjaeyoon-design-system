@@ -36,9 +36,17 @@ pnpm --filter @devjaeyoon-design-system/docs exec playwright install chromium
 pnpm check
 ```
 
-Linux에서 Chromium의 시스템 라이브러리가 부족하면
-`pnpm --filter @devjaeyoon-design-system/docs exec playwright install --with-deps chromium`으로
-설치한다. CI는 이 옵션을 사용한다.
+Linux에서 브라우저의 시스템 라이브러리가 부족하면 `playwright install`에 `--with-deps`를
+추가한다. CI는 모든 브라우저에 이 옵션을 사용한다.
+
+기본 로컬 검사는 Chromium으로 실행한다. Firefox나 WebKit을 직접 검사하려면 해당 브라우저를
+설치하고 `DS_TEST_BROWSER`를 지정한다.
+
+```sh
+pnpm --filter @devjaeyoon-design-system/docs exec playwright install firefox webkit
+DS_TEST_BROWSER=firefox pnpm test:stories
+DS_TEST_BROWSER=webkit pnpm --filter @devjaeyoon-design-system/react pack:check
+```
 
 주요 명령:
 
@@ -50,17 +58,19 @@ Linux에서 Chromium의 시스템 라이브러리가 부족하면
 | `pnpm lint` | Biome lint |
 | `pnpm typecheck` | 모든 workspace 타입 검사 |
 | `pnpm test` | 단위 테스트 |
-| `pnpm test:stories` | Chromium story render·interaction·axe 검사 |
+| `pnpm test:stories` | 선택한 브라우저의 story render·interaction·axe 검사 |
 | `pnpm build` | 패키지, Starlight, Storybook 전체 build |
 | `pnpm build:packages` | 세 공개 패키지만 build |
 | `pnpm build:pages` | Pages용 Starlight + Storybook artifact 조립 |
-| `pnpm pack:check` | publint, Are the Types Wrong, pack dry-run |
+| `pnpm pack:check` | publint, Are the Types Wrong, pack·tarball consumer 검사 |
 | `pnpm check` | 아래 순서로 품질 검사 실행 |
 
 `pnpm check`는 `format:check` → `lint` → `typecheck` → `test` → `test:stories` → `build` →
 `pack:check`를 순서대로 실행한다. Pages artifact 조립과 경로 검증은 `pnpm build:pages`로
 별도 실행한다. CI의 changeset coverage 검사는 버전 PR을 제외한 PR에서 별도 단계로 실행하며,
-base 브랜치와 PR의 커밋 차이를 기준으로 필요한 changeset을 확인한다.
+base 브랜치와 PR의 커밋 차이를 기준으로 필요한 changeset을 확인한다. CI는 전체 검사를
+Chromium으로 수행하고 Firefox·WebKit에서는 Storybook과 React tarball consumer를 추가로
+검사한다. 세 결과는 기존 필수 상태 검사인 `CI / check`에 집계된다.
 
 Turbo remote cache는 사용하지 않는다. 로컬 캐시는 `.turbo/cache`에 저장하고 CI에서는 GitHub
 Actions cache로만 재사용한다.
