@@ -43,23 +43,24 @@ for (const file of changedFiles) {
     directory === "design-token" &&
     (relativePath.startsWith("tokens/") || relativePath.startsWith("scripts/"));
   const affectsRelease =
-    (!isTest && relativePath.startsWith("src/")) ||
-    (!isTest && isDesignTokenSource) ||
-    (directory === "css" && relativePath.startsWith("scripts/")) ||
-    [
-      "LICENSE",
-      "README.md",
-      "package.json",
-      "tsconfig.build.json",
-      "tsconfig.json",
-      "vite.config.ts",
-    ].includes(relativePath);
+    !isTest &&
+    (relativePath.startsWith("src/") ||
+      isDesignTokenSource ||
+      (directory === "css" && relativePath.startsWith("scripts/")) ||
+      [
+        "LICENSE",
+        "README.md",
+        "package.json",
+        "tsconfig.build.json",
+        "tsconfig.json",
+        "vite.config.ts",
+      ].includes(relativePath));
 
   if (!affectsRelease) continue;
 
   const packageName = releasePackages.get(directory);
   if (packageName) requiredPackages.add(packageName);
-  if (directory === "design-token") requiredPackages.add("@devjaeyoon-design-system/css");
+  if (isDesignTokenSource && !isTest) requiredPackages.add("@devjaeyoon-design-system/css");
 }
 
 if (requiredPackages.size === 0) process.exit(0);

@@ -42,6 +42,8 @@ semantic 이름은 flat kebab-case입니다. 기본 상태에는 suffix를 붙�
 - 색상: `color-{fg|bg|stroke}-{role}[-{strength}][-{state}]`
 - 타이포그래피: `typography-{role}-{lg|md|sm}-{regular|strong}`
 - 간격: `space-{layout|content}-{purpose}[-{size}]`
+- 컨트롤 모서리: `radius-control`
+- 컨트롤 크기: `size-control-{sm|md|lg}`
 - 모션: `motion-{duration|easing}-{feedback|enter|exit}`
 
 `display`와 `heading`은 `strong`만 제공합니다. 존재하지 않는 조합을 만들거나 색상 이름에 시각적
@@ -104,6 +106,20 @@ primitive spacing은 4px 기반 rem scale입니다. 화면 구조에는 `space-l
 `space-content-stack-{sm|md|lg}`를 사용합니다. 컴포넌트 구현에서 scale 값이 필요한 경우에만
 `--djy-space-*` primitive를 직접 사용합니다.
 
+## Control dimensions
+
+Button과 IconButton은 다음 semantic 토큰을 공유합니다. `semanticTokens`에서 아래 키로
+조회하거나 `--djy-` 접두사를 붙인 CSS 변수로 사용합니다.
+
+| 토큰 | 기본값 | 용도 |
+| --- | --- | --- |
+| `radius-control` | `0.75rem` (12px) | 두 버튼의 모서리 반경 |
+| `size-control-sm` | `2rem` (32px) | small Button 최소 높이·IconButton 한 변 |
+| `size-control-md` | `2.5rem` (40px) | medium Button 최소 높이·IconButton 한 변 |
+| `size-control-lg` | `3.25rem` (52px) | large Button 최소 높이·IconButton 한 변 |
+
+px 값은 루트 글자 크기 16px 기준입니다. TextField는 별도의 모서리와 크기를 사용합니다.
+
 ## Motion
 
 피드백, 진입, 이탈에는 각각 대응하는 duration과 easing을 함께 사용합니다.
@@ -120,6 +136,9 @@ animation처럼 duration 변경만으로 충분하지 않은 동작은 반복 �
 
 ## 변경 규칙
 
-semantic 키는 공개 API입니다. `tokens/**` 또는 생성기 변경으로 생성 CSS가 달라지면
-`design-token`과 `css` 공개 변경으로 함께 취급합니다. component 전용 토큰, native 산출물,
-고대비·색각 테마는 현재 범위에 포함하지 않습니다.
+semantic 키는 공개 API입니다. 토큰 원천(`tokens/**`)이나 생성기 변경은 `design-token`과 `css`의
+changeset을 함께 작성합니다. 패키지 README만 변경하면 해당 패키지의 changeset만 작성하며,
+테스트 파일 변경에는 changeset이 필요하지 않습니다.
+
+개별 컴포넌트 이름을 붙인 전용 토큰, native 산출물, 고대비·색각 테마는 현재 범위에 포함하지
+않습니다.

@@ -9,4 +9,5 @@
 
 - 토큰 이름은 의미 중심으로 작성하고 기존 공개 키를 임의로 변경하지 않는다.
 - light/dark semantic 토큰은 항상 같은 키 집합을 유지한다.
-- 토큰 변경이 CSS 산출물에 반영되면 `design-token`과 `css` changeset을 함께 작성한다.
+- 토큰 원천·생성기 변경은 `design-token`과 `css` changeset을 함께 작성한다. 패키지 README만
+  변경하면 `design-token` changeset만 작성한다.
