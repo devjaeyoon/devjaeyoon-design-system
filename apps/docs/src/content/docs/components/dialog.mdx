@@ -1,0 +1,84 @@
+---
+title: Dialog
+description: 현재 흐름 위에서 정보 조회와 입력 작업을 수행하는 모달
+---
+
+`Dialog`는 현재 화면을 일시 중단하고 정보 조회, 폼 입력이나 설정 작업에 집중하게 합니다.
+즉각적인 경고나 되돌리기 어려운 확인에는 별도의 AlertDialog 패턴을 사용합니다.
+
+## 기본 사용
+
+```tsx
+import {
+  Button,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogRoot,
+  DialogTrigger,
+} from "@devjaeyoon-design-system/react";
+
+<DialogRoot>
+  <DialogTrigger>상세 보기</DialogTrigger>
+  <DialogContent title="운동 기록" description="저장된 세트 정보를 확인합니다.">
+    <DialogBody>본문</DialogBody>
+    <DialogFooter>
+      <DialogClose>닫기</DialogClose>
+      <Button>오늘로 불러오기</Button>
+    </DialogFooter>
+  </DialogContent>
+</DialogRoot>;
+```
+
+`DialogContent`의 `title`은 필수이며 접근성 이름으로 연결됩니다. 간단한 설명은
+`description`으로 전달합니다. 여러 문단이나 목록 자체가 설명 역할을 한다면 `description`을
+생략하고 본문을 순서대로 탐색할 수 있게 작성합니다.
+
+## 상태와 닫기
+
+`DialogRoot`는 `defaultOpen`을 사용하는 uncontrolled 방식과 `open`·`onOpenChange`를 사용하는
+controlled 방식을 지원합니다. 비동기 저장은 controlled 상태로 관리하고 성공했을 때만 닫습니다.
+
+바깥 영역 클릭은 기본적으로 닫히지 않습니다. 가벼운 조회 화면에서만
+`closeOnInteractOutside`를 사용합니다. Escape는 기본적으로 닫히며 `closeOnEscape={false}`로
+막을 수 있습니다. `onCancel`에서 `preventDefault()`를 호출해 현재 상황에 따라 Escape 닫기를
+취소할 수도 있습니다. 모든 Dialog에는 헤더 닫기 또는 Footer의 취소·닫기 중 하나를 제공합니다.
+입력 작업에서는 `showCloseButton={false}`와 명시적인 취소 버튼 조합을 권장합니다.
+
+열려 있는 `DialogContent`가 조건부 렌더링으로 제거되면 일반 닫기와 같은 수명 주기로 처리합니다.
+배경 스크롤과 viewport listener를 해제하고 `onCloseAutoFocus`를 한 번 호출한 뒤 유효한 복귀
+대상으로 포커스를 옮깁니다. React StrictMode의 개발용 effect 재실행은 닫기로 취급하지 않습니다.
+native `close()`를 ref에서 직접 호출한 경우에도 `onOpenChange(false)`가 한 번 요청됩니다.
+
+## 크기와 스크롤
+
+`size="medium"`은 480px로 일반 입력 폼에 사용하고, `large`는 800px로 복잡한 설정이나 많은
+데이터에 사용합니다. 좁은 화면에서는 화면 너비의 90%로 줄어듭니다. 최대 높이는 가용 화면의
+80%이며, 긴 내용은 `DialogBody`만 스크롤됩니다. 스크롤 위치에 따라 헤더 경계선과 본문 하단
+흐림이 자동으로 표시됩니다.
+
+## 포커스
+
+열릴 때 `initialFocusRef`가 있으면 해당 요소에, 없으면 `autofocus` 요소를 거쳐 제목에
+포커스합니다. 닫히면 `returnFocusRef`, Trigger, 열기 직전 요소 순서로 복귀합니다. 작업 완료 후
+새로 생성된 항목처럼 더 자연스러운 다음 위치가 있다면 `onCloseAutoFocus`에서 기본 복귀를 막고
+애플리케이션이 직접 포커스합니다.
+
+초기 포커스 대상은 해당 Dialog 안에 있어야 합니다. 복귀 대상은 같은 document에 연결되어 있고
+disabled, hidden, inert, `aria-hidden`, `display: none`, `visibility: hidden` 상태가 아니어야 합니다.
+조건을 만족해도 실제로 포커스를 받지 못하면 다음 후보를 사용합니다. 중첩 Dialog에서는 맨 위
+Dialog만 초기 포커스를 설정하고, 자식이 닫힐 때 남아 있는 부모 Dialog 안의 요소로만 복귀합니다.
+닫힌 직후 다른 Dialog가 열리거나 애플리케이션이 직접 포커스를 옮기면 예약된 복귀 작업은
+중단됩니다.
+
+`onCloseAutoFocus`의 event에 `preventDefault()`를 호출하면 컴포넌트가 예약하는 추가 포커스 복귀를
+막습니다. native `<dialog>`가 `close()` 과정에서 자체적으로 수행하는 복귀는 그보다 먼저 일어날
+수 있으므로, 완전히 다른 위치를 원하면 callback 안에서 원하는 요소의 `focus()`를 직접 호출합니다.
+
+native `<dialog>` 안에서 Portal을 사용하는 Select나 Popover는 Portal container를 실제
+`DialogContent` ref로 받은 요소로 지정해야 합니다. 모달 밖 `document.body`에 표시된 레이어는
+브라우저가 상호작용을 차단합니다.
+
+상태와 키보드 상호작용은
+[Dialog Storybook](https://devjaeyoon.github.io/devjaeyoon-design-system/storybook/?path=/story/components-dialog--default)에서 확인합니다.

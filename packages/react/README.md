@@ -52,8 +52,44 @@ import { TextField } from "@devjaeyoon-design-system/react";
 [TextField 가이드](https://devjaeyoon.github.io/devjaeyoon-design-system/components/text-field/)와
 [프로필 수정 폼 예제](https://devjaeyoon.github.io/devjaeyoon-design-system/storybook/?path=/story/examples-profileform--save)를 참고한다.
 
+`Dialog`는 native `<dialog>` 위에 제목, 스크롤 본문과 고정 Footer를 구성한다. 바깥 영역 클릭은
+기본적으로 닫히지 않으며 Escape와 명시적인 닫기 버튼을 지원한다.
+
+```tsx
+import {
+  Button,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogRoot,
+  DialogTrigger,
+} from "@devjaeyoon-design-system/react";
+
+<DialogRoot>
+  <DialogTrigger>운동 기록 보기</DialogTrigger>
+  <DialogContent title="운동 기록" description="저장된 세트를 확인합니다.">
+    <DialogBody>본문</DialogBody>
+    <DialogFooter>
+      <DialogClose>닫기</DialogClose>
+      <Button>오늘로 불러오기</Button>
+    </DialogFooter>
+  </DialogContent>
+</DialogRoot>;
+```
+
+`DialogContent`는 `medium`(480px)과 `large`(800px)를 지원한다. Portal을 사용하는 Select나
+Popover는 Portal container를 `DialogContent` ref가 가리키는 실제 dialog 요소로 지정한다.
+열려 있는 Content가 제거되어도 닫기 callback과 포커스 복귀를 한 번 수행하며, StrictMode의
+개발용 effect 재실행은 닫기로 처리하지 않는다. 중첩 Dialog의 초기·복귀 포커스는 현재 맨 위
+Dialog를 기준으로 관리한다.
+[Dialog 가이드](https://devjaeyoon.github.io/devjaeyoon-design-system/components/dialog/)에서 controlled
+상태, 닫기 정책과 포커스 계약을 확인할 수 있다.
+
 ## 소비자 앱 검증
 
 `pnpm pack:check`는 build한 React와 CSS 패키지를 tarball로 만든 뒤 임시 React 앱에 설치한다.
-이 앱을 대상으로 공개 타입, production build와 CSS 포함 여부, SSR, Chromium의 폼 상호작용과
-light/dark 계산 스타일을 검사한다. 로컬 실행 전 Playwright Chromium이 설치되어 있어야 한다.
+이 앱을 대상으로 공개 타입, production build와 CSS 포함 여부, SSR, Playwright 브라우저의
+폼·Dialog 상호작용과 light/dark 계산 스타일을 검사한다. `DS_TEST_BROWSER`에 `chromium`,
+`firefox`, `webkit` 중 하나를 지정하며 생략하면 Chromium을 사용한다. 실행할 브라우저는 로컬에
+미리 설치되어 있어야 한다.

@@ -13,6 +13,160 @@
 }
 
 @layer djy.components {
+  .djy-dialog {
+    --djy-dialog-viewport-height: 100dvh;
+    --djy-dialog-viewport-offset: 0px;
+    box-sizing: border-box;
+    inset: auto 0;
+    top: calc(var(--djy-dialog-viewport-offset) + var(--djy-dialog-viewport-height) / 2);
+    width: min(90vw, var(--djy-dialog-width));
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    margin: 0 auto;
+    overflow: visible;
+    color: var(--djy-color-fg-neutral);
+    background: transparent;
+    border: 0;
+    transform: translateY(-50%);
+  }
+
+  .djy-dialog--medium {
+    --djy-dialog-width: 30rem;
+  }
+
+  .djy-dialog--large {
+    --djy-dialog-width: 50rem;
+  }
+
+  .djy-dialog::backdrop {
+    background: var(--djy-color-bg-overlay-muted);
+  }
+
+  .djy-dialog__surface {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    max-height: min(80dvh, calc(var(--djy-dialog-viewport-height) * 0.8));
+    overflow: auto;
+    background: var(--djy-color-bg-elevated);
+    border-radius: 1.5rem;
+    box-shadow: 0 1rem 3rem rgb(0 0 0 / 18%);
+  }
+
+  .djy-dialog__header {
+    box-sizing: border-box;
+    display: flex;
+    flex: 0 0 auto;
+    gap: var(--djy-space-4);
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: var(--djy-space-6);
+    padding-bottom: var(--djy-space-4);
+    border-bottom: 1px solid transparent;
+  }
+
+  .djy-dialog[data-scrolled-start="true"] .djy-dialog__header {
+    border-bottom-color: var(--djy-color-stroke-neutral-subtle);
+  }
+
+  .djy-dialog__heading {
+    min-width: 0;
+  }
+
+  .djy-dialog__title {
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--djy-typography-heading-md-strong-font-family);
+    font-size: var(--djy-typography-heading-md-strong-font-size);
+    font-weight: var(--djy-typography-heading-md-strong-font-weight);
+    line-height: var(--djy-typography-heading-md-strong-line-height);
+    letter-spacing: var(--djy-typography-heading-md-strong-letter-spacing);
+  }
+
+  .djy-dialog__title:focus {
+    outline: none;
+  }
+
+  .djy-dialog__description {
+    margin: var(--djy-space-1) 0 0;
+    color: var(--djy-color-fg-neutral-muted);
+    font-family: var(--djy-typography-body-sm-regular-font-family);
+    font-size: var(--djy-typography-body-sm-regular-font-size);
+    font-weight: var(--djy-typography-body-sm-regular-font-weight);
+    line-height: var(--djy-typography-body-sm-regular-line-height);
+    letter-spacing: var(--djy-typography-body-sm-regular-letter-spacing);
+  }
+
+  .djy-dialog__close {
+    flex: 0 0 auto;
+    margin: calc(var(--djy-space-2) * -1);
+  }
+
+  .djy-dialog__body-shell {
+    position: relative;
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .djy-dialog__body {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 0;
+    padding: 0 var(--djy-space-6) var(--djy-space-6);
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .djy-dialog__scroll-fog {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 1.5rem;
+    pointer-events: none;
+    background: transparent;
+  }
+
+  .djy-dialog[data-overflow-end="true"] .djy-dialog__scroll-fog {
+    background: linear-gradient(to bottom, transparent, var(--djy-color-bg-elevated));
+  }
+
+  .djy-dialog__footer {
+    box-sizing: border-box;
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: var(--djy-space-2);
+    align-items: center;
+    justify-content: flex-end;
+    padding: var(--djy-space-4) var(--djy-space-6) var(--djy-space-6);
+    border-top: 1px solid var(--djy-color-stroke-neutral-subtle);
+  }
+
+  @media (width < 48rem) {
+    .djy-dialog__header {
+      padding: max(var(--djy-space-5), env(safe-area-inset-top))
+        max(var(--djy-space-5), env(safe-area-inset-right)) var(--djy-space-4)
+        max(var(--djy-space-5), env(safe-area-inset-left));
+    }
+
+    .djy-dialog__body {
+      padding-right: max(var(--djy-space-5), env(safe-area-inset-right));
+      padding-bottom: var(--djy-space-5);
+      padding-left: max(var(--djy-space-5), env(safe-area-inset-left));
+    }
+
+    .djy-dialog__footer {
+      padding: var(--djy-space-4) max(var(--djy-space-5), env(safe-area-inset-right))
+        max(var(--djy-space-5), env(safe-area-inset-bottom))
+        max(var(--djy-space-5), env(safe-area-inset-left));
+    }
+  }
+
   .djy-text-field {
     display: flex;
     flex-direction: column;

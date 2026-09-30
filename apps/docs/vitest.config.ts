@@ -4,6 +4,21 @@ import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig, defineProject } from "vitest/config";
 
+const supportedBrowsers = ["chromium", "firefox", "webkit"] as const;
+type SupportedBrowser = (typeof supportedBrowsers)[number];
+
+function isSupportedBrowser(browser: string): browser is SupportedBrowser {
+  return supportedBrowsers.some((supportedBrowser) => supportedBrowser === browser);
+}
+
+function getTestBrowser(): SupportedBrowser {
+  const browser = process.env.DS_TEST_BROWSER ?? "chromium";
+  if (isSupportedBrowser(browser)) return browser;
+  throw new Error(
+    `Unsupported DS_TEST_BROWSER "${browser}". Expected one of: ${supportedBrowsers.join(", ")}.`,
+  );
+}
+
 export default defineConfig({
   test: {
     projects: [
@@ -27,7 +42,7 @@ export default defineConfig({
             enabled: true,
             provider: playwright({}),
             headless: true,
-            instances: [{ browser: "chromium" }],
+            instances: [{ browser: getTestBrowser() }],
           },
         },
       }),

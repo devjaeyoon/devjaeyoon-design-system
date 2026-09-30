@@ -1,5 +1,12 @@
 import { strict as assert } from "node:assert";
-import { Button, IconButton, TextField } from "@devjaeyoon-design-system/react";
+import {
+  Button,
+  DialogBody,
+  DialogContent,
+  DialogRoot,
+  IconButton,
+  TextField,
+} from "@devjaeyoon-design-system/react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -22,6 +29,15 @@ const markup = renderToStaticMarkup(
       { "aria-label": "Delete item", loading: true, loadingLabel: "Deleting item", tone: "danger" },
       "×",
     ),
+    createElement(
+      DialogRoot,
+      { defaultOpen: true },
+      createElement(
+        DialogContent,
+        { description: "SSR description", title: "SSR dialog" },
+        createElement(DialogBody, null, "SSR body"),
+      ),
+    ),
   ),
 );
 
@@ -38,3 +54,7 @@ assert.match(markup, /djy-icon-button/u);
 assert.match(markup, /aria-label="Delete item"/u);
 assert.match(markup, /Deleting item/u);
 assert.match(markup, /aria-busy="true"/u);
+assert.match(markup, /<dialog/u);
+assert.match(markup, /SSR dialog/u);
+assert.match(markup, /SSR description/u);
+assert.match(markup, /djy-dialog__body/u);
