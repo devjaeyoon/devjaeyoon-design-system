@@ -334,3 +334,54 @@ export const Nested: Story = {
     });
   },
 };
+
+export const NestedInitiallyOpen: Story = {
+  render: () => (
+    <StrictMode>
+      <DialogRoot defaultOpen>
+        <DialogTrigger>초기 부모 Dialog 열기</DialogTrigger>
+        <DialogContent title="초기 부모 Dialog">
+          <DialogBody>
+            <DialogRoot defaultOpen>
+              <DialogTrigger>초기 자식 Dialog 열기</DialogTrigger>
+              <DialogContent title="초기 자식 Dialog">
+                <DialogBody>두 Dialog가 함께 열려도 자식부터 작업합니다.</DialogBody>
+              </DialogContent>
+            </DialogRoot>
+          </DialogBody>
+        </DialogContent>
+      </DialogRoot>
+    </StrictMode>
+  ),
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const parentDialog = canvas.getByRole("dialog", { name: "초기 부모 Dialog" });
+    const childDialog = canvas.getByRole("dialog", { name: "초기 자식 Dialog" });
+
+    await step("동시에 열린 자식이 초기 포커스를 받는다", async () => {
+      await waitFor(() => expect(parentDialog).toHaveAttribute("open"));
+      await waitFor(() => expect(childDialog).toHaveAttribute("open"));
+      await waitFor(() =>
+        expect(canvas.getByRole("heading", { name: "초기 자식 Dialog" })).toHaveFocus(),
+      );
+    });
+
+    await step("자식만 닫고 부모의 Trigger로 복귀한다", async () => {
+      fireNativeCancel(childDialog);
+      await waitFor(() => expect(childDialog).not.toHaveAttribute("open"));
+      await expect(parentDialog).toHaveAttribute("open");
+      await waitFor(() =>
+        expect(canvas.getByRole("button", { name: "초기 자식 Dialog 열기" })).toHaveFocus(),
+      );
+      await expect(parentDialog.ownerDocument.documentElement.style.overflow).toBe("hidden");
+    });
+
+    await step("부모까지 닫으면 바깥 Trigger로 복귀한다", async () => {
+      fireNativeCancel(parentDialog);
+      await waitFor(() => expect(parentDialog).not.toHaveAttribute("open"));
+      await waitFor(() =>
+        expect(canvas.getByRole("button", { name: "초기 부모 Dialog 열기" })).toHaveFocus(),
+      );
+    });
+  },
+};

@@ -122,6 +122,41 @@ function NestedDialogFixture() {
   );
 }
 
+function SimultaneousNestedDialogFixture({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
+  const [mounted, setMounted] = useState(!initiallyOpen);
+  const [open, setOpen] = useState(initiallyOpen);
+  const prefix = initiallyOpen ? "initial" : "simultaneous";
+
+  return (
+    <section aria-label={`${prefix} nested fixture`}>
+      {initiallyOpen ? (
+        <Button data-testid="initial-nested-mount" onClick={() => setMounted(true)}>
+          Mount initially open dialogs
+        </Button>
+      ) : null}
+      {mounted ? (
+        <DialogRoot open={open} onOpenChange={setOpen}>
+          <DialogTrigger data-testid={`${prefix}-parent-trigger`}>
+            Open {prefix} parent
+          </DialogTrigger>
+          <DialogContent title={`${prefix} parent dialog`}>
+            <DialogBody>
+              <DialogRoot defaultOpen>
+                <DialogTrigger data-testid={`${prefix}-child-trigger`}>
+                  Open {prefix} child
+                </DialogTrigger>
+                <DialogContent title={`${prefix} child dialog`}>
+                  <DialogBody>The child opens together with its parent.</DialogBody>
+                </DialogContent>
+              </DialogRoot>
+            </DialogBody>
+          </DialogContent>
+        </DialogRoot>
+      ) : null}
+    </section>
+  );
+}
+
 function DialogPolicyFixture() {
   const customFocusRef = useRef<HTMLButtonElement>(null);
   const preventedReturnRef = useRef<HTMLButtonElement>(null);
@@ -375,6 +410,8 @@ function ConsumerApp() {
       <h1 style={{ overflowWrap: "anywhere" }}>Installed package consumer</h1>
       <DialogLifecycleFixture />
       <NestedDialogFixture />
+      <SimultaneousNestedDialogFixture initiallyOpen />
+      <SimultaneousNestedDialogFixture />
       <DialogPolicyFixture />
       <ControlledEscapeDialogFixture />
       <NativeCloseDialogFixture />

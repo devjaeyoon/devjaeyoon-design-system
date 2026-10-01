@@ -71,6 +71,7 @@ native `close()`를 ref에서 직접 호출한 경우에도 `onOpenChange(false)
 disabled, hidden, inert, `aria-hidden`, `display: none`, `visibility: hidden` 상태가 아니어야 합니다.
 조건을 만족해도 실제로 포커스를 받지 못하면 다음 후보를 사용합니다. 중첩 Dialog에서는 맨 위
 Dialog만 초기 포커스를 설정하고, 자식이 닫힐 때 남아 있는 부모 Dialog 안의 요소로만 복귀합니다.
+부모와 자식이 처음부터 열려 있거나 함께 열려도 부모부터 모달을 열어 자식이 최상위에 놓입니다.
 닫힌 직후 다른 Dialog가 열리거나 애플리케이션이 직접 포커스를 옮기면 예약된 복귀 작업은
 중단됩니다.
 

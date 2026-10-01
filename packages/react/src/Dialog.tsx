@@ -37,6 +37,7 @@ type DialogContextValue = {
 };
 
 const DialogContext = createContext<DialogContextValue | null>(null);
+const DialogContentContext = createContext<(() => void) | null>(null);
 
 function useDialogContext(component: string) {
   const context = useContext(DialogContext);
@@ -292,6 +293,7 @@ export function DialogContent({
   ...dialogProps
 }: DialogContentProps) {
   const context = useDialogContext("DialogContent");
+  const openParentSession = useContext(DialogContentContext);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -412,9 +414,13 @@ export function DialogContent({
   );
 
   const openSession = useCallback(() => {
+    if (!latestRef.current.context.open) return;
     if (sessionRef.current && !sessionRef.current.finalized) return;
     const dialog = dialogRef.current;
     if (!dialog) return;
+
+    // Child effects run first, so open ancestors before adding this dialog to the top layer.
+    openParentSession?.();
 
     cancelStateRef.current = { blocked: false, reopen: false, focus: null };
     cancelPendingReturnFocus();
@@ -479,7 +485,7 @@ export function DialogContent({
 
     if (view) session.initialFocusFrame = view.requestAnimationFrame(focusInitialTarget);
     else focusInitialTarget();
-  }, [cancelPendingReturnFocus]);
+  }, [cancelPendingReturnFocus, openParentSession]);
 
   useEffect(() => {
     const mountedState = mountedStateRef.current;
@@ -629,7 +635,7 @@ export function DialogContent({
               </IconButton>
             ) : null}
           </header>
-          {children}
+          <DialogContentContext value={openSession}>{children}</DialogContentContext>
         </div>
       ) : null}
     </dialog>

@@ -238,6 +238,33 @@ async function checkBrowser(consumerDirectory) {
     await parentDialog.waitFor({ state: "hidden" });
     await waitForFocus(parentDialogTrigger);
 
+    for (const prefix of ["initial", "simultaneous"]) {
+      const outerTrigger = page.getByTestId(`${prefix}-parent-trigger`);
+      await (prefix === "initial"
+        ? page.getByTestId("initial-nested-mount")
+        : outerTrigger
+      ).click();
+      const simultaneousParent = page.getByRole("dialog", { name: `${prefix} parent dialog` });
+      const simultaneousChild = page.getByRole("dialog", { name: `${prefix} child dialog` });
+      await simultaneousParent.waitFor({ state: "visible" });
+      await simultaneousChild.waitFor({ state: "visible" });
+      await waitForFocus(page.getByRole("heading", { name: `${prefix} child dialog` }));
+      assert.equal(await simultaneousParent.evaluate((element) => element.matches(":modal")), true);
+      assert.equal(await simultaneousChild.evaluate((element) => element.matches(":modal")), true);
+      await page.keyboard.press("Escape");
+      await simultaneousChild.waitFor({ state: "hidden" });
+      assert.equal(await simultaneousParent.isVisible(), true);
+      await waitForFocus(page.getByTestId(`${prefix}-child-trigger`));
+      assert.equal(
+        await page.locator("html").evaluate((element) => element.style.overflow),
+        "hidden",
+      );
+      await page.keyboard.press("Escape");
+      await simultaneousParent.waitFor({ state: "hidden" });
+      await waitForFocus(outerTrigger);
+      assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
+    }
+
     const escapeDisabledTrigger = page.getByTestId("escape-disabled-trigger");
     await escapeDisabledTrigger.click();
     const escapeDisabledDialog = page.getByRole("dialog", { name: "Escape disabled dialog" });
