@@ -687,7 +687,7 @@ export function DialogBody({ className, onScroll, ref, tabIndex, ...props }: Dia
           for (const child of body.children) observer?.observe(child);
           update();
         });
-    mutationObserver?.observe(body, { childList: true });
+    mutationObserver?.observe(body, { childList: true, characterData: true, subtree: true });
     view?.addEventListener("resize", update);
 
     return () => {

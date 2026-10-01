@@ -212,6 +212,89 @@ export const Scrollable: Story = {
   ),
 };
 
+function TextUpdateDialog({ nested = false }: { nested?: boolean }) {
+  const [longText, setLongText] = useState(false);
+  const text = longText
+    ? "운동 기록의 중량과 횟수를 확인합니다.\n".repeat(40)
+    : "짧은 운동 기록입니다.";
+
+  return (
+    <DialogRoot>
+      <DialogTrigger>본문 갱신 Dialog 열기</DialogTrigger>
+      <DialogContent title="본문 갱신">
+        <DialogBody data-testid="dynamic-text-body" style={{ height: 160, whiteSpace: "pre-wrap" }}>
+          {nested ? (
+            <div style={{ height: 80 }}>
+              <p style={{ margin: 0 }}>{text}</p>
+            </div>
+          ) : (
+            text
+          )}
+        </DialogBody>
+        <DialogFooter>
+          <Button onClick={() => setLongText(true)}>본문 늘리기</Button>
+          <Button onClick={() => setLongText(false)}>본문 줄이기</Button>
+        </DialogFooter>
+      </DialogContent>
+    </DialogRoot>
+  );
+}
+
+export const DynamicText: Story = {
+  render: () => <TextUpdateDialog />,
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "본문 갱신 Dialog 열기" }));
+    const dialog = canvas.getByRole("dialog", { name: "본문 갱신" });
+    const body = canvas.getByTestId("dynamic-text-body");
+    const textContainer = body.querySelector("p") ?? body;
+    const textNode = textContainer.firstChild;
+    const bodyHeight = body.clientHeight;
+    const wrapper = body.firstElementChild;
+    const wrapperHeight = wrapper?.clientHeight;
+    const header = dialog.querySelector<HTMLElement>(".djy-dialog__header");
+    const fog = dialog.querySelector<HTMLElement>(".djy-dialog__scroll-fog");
+    if (!header || !fog) throw new Error("스크롤 표시 요소가 없습니다.");
+    const transparentBorder = getComputedStyle(header).borderBottomColor;
+
+    await step("기존 텍스트 노드만 길어져도 스크롤 표시와 키보드 접근을 갱신한다", async () => {
+      await waitFor(() => expect(dialog).toHaveAttribute("data-overflow-end", "false"));
+      await expect(body).not.toHaveAttribute("tabindex");
+      await userEvent.click(canvas.getByRole("button", { name: "본문 늘리기" }));
+      await expect(textContainer.firstChild).toBe(textNode);
+      await expect(body.clientHeight).toBe(bodyHeight);
+      await expect(wrapper?.clientHeight).toBe(wrapperHeight);
+      await expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
+      await waitFor(() => expect(dialog).toHaveAttribute("data-overflow-end", "true"));
+      await expect(body).toHaveAttribute("tabindex", "0");
+      await expect(getComputedStyle(fog).backgroundImage).not.toBe("none");
+
+      body.scrollTop = 24;
+      fireEvent.scroll(body);
+      await expect(dialog).toHaveAttribute("data-scrolled-start", "true");
+      await expect(getComputedStyle(header).borderBottomColor).not.toBe(transparentBorder);
+    });
+
+    await step("텍스트가 다시 짧아지면 스크롤 표시와 자동 tabindex를 제거한다", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "본문 줄이기" }));
+      await expect(textContainer.firstChild).toBe(textNode);
+      await waitFor(() => expect(dialog).toHaveAttribute("data-overflow-end", "false"));
+      await expect(dialog).toHaveAttribute("data-scrolled-start", "false");
+      await expect(body).not.toHaveAttribute("tabindex");
+      await expect(getComputedStyle(header).borderBottomColor).toBe(transparentBorder);
+      await expect(getComputedStyle(fog).backgroundImage).toBe("none");
+    });
+
+    fireNativeCancel(dialog);
+    await waitFor(() => expect(dialog).not.toHaveAttribute("open"));
+  },
+};
+
+export const NestedDynamicText: Story = {
+  ...DynamicText,
+  render: () => <TextUpdateDialog nested />,
+};
+
 function DialogLifecycleStory() {
   const [open, setOpen] = useState(true);
   const [mounted, setMounted] = useState(true);
