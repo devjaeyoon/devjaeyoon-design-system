@@ -335,6 +335,108 @@ export const Nested: Story = {
   },
 };
 
+function NestedScrollDialog() {
+  const [longChild, setLongChild] = useState(false);
+
+  return (
+    <DialogRoot>
+      <DialogTrigger>스크롤 부모 열기</DialogTrigger>
+      <DialogContent title="스크롤 부모">
+        <DialogBody data-testid="scroll-parent-body" style={{ maxHeight: 240 }}>
+          <DialogRoot>
+            <DialogTrigger>스크롤 자식 열기</DialogTrigger>
+            <DialogContent title="스크롤 자식">
+              <div>
+                <DialogBody data-testid="scroll-child-body" style={{ maxHeight: 200 }}>
+                  <Button onClick={() => setLongChild(true)}>자식 본문 늘리기</Button>
+                  {longChild ? (
+                    Array.from({ length: 20 }, (_, index) => (
+                      <p key={index}>자식 기록 {index + 1}</p>
+                    ))
+                  ) : (
+                    <p>짧은 자식 본문입니다.</p>
+                  )}
+                </DialogBody>
+              </div>
+            </DialogContent>
+          </DialogRoot>
+          {Array.from({ length: 20 }, (_, index) => (
+            <p key={index}>부모 기록 {index + 1}</p>
+          ))}
+        </DialogBody>
+      </DialogContent>
+    </DialogRoot>
+  );
+}
+
+export const NestedScroll: Story = {
+  render: () => <NestedScrollDialog />,
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "스크롤 부모 열기" }));
+    const parentDialog = canvas.getByRole("dialog", { name: "스크롤 부모" });
+    const parentBody = canvas.getByTestId("scroll-parent-body");
+    const parentHeader = parentDialog.querySelector<HTMLElement>(".djy-dialog__header");
+    const parentFog = parentDialog.querySelector<HTMLElement>(".djy-dialog__scroll-fog");
+    if (!parentHeader || !parentFog) throw new Error("부모 스크롤 표시 요소가 없습니다.");
+    const transparentBorder = getComputedStyle(parentHeader).borderBottomColor;
+
+    await step("부모의 스크롤 표시가 짧은 자식에 적용되지 않는다", async () => {
+      await waitFor(() => expect(parentDialog).toHaveAttribute("data-overflow-end", "true"));
+      parentBody.scrollTop = 16;
+      fireEvent.scroll(parentBody);
+      await userEvent.click(canvas.getByRole("button", { name: "스크롤 자식 열기" }));
+      const childDialog = canvas.getByRole("dialog", { name: "스크롤 자식" });
+      const childHeader = childDialog.querySelector<HTMLElement>(".djy-dialog__header");
+      const childFog = childDialog.querySelector<HTMLElement>(".djy-dialog__scroll-fog");
+      if (!childHeader || !childFog) throw new Error("자식 스크롤 표시 요소가 없습니다.");
+
+      parentBody.scrollTop = 16;
+      fireEvent.scroll(parentBody);
+      await waitFor(() => expect(parentDialog).toHaveAttribute("data-scrolled-start", "true"));
+      await expect(parentDialog).toHaveAttribute("data-overflow-end", "true");
+      await waitFor(() => expect(childDialog).toHaveAttribute("data-scrolled-start", "false"));
+      await expect(childDialog).toHaveAttribute("data-overflow-end", "false");
+      await expect(getComputedStyle(parentHeader).borderBottomColor).not.toBe(transparentBorder);
+      await expect(getComputedStyle(parentFog).backgroundImage).not.toBe("none");
+      await expect(getComputedStyle(childHeader).borderBottomColor).toBe(transparentBorder);
+      await expect(getComputedStyle(childFog).backgroundImage).toBe("none");
+    });
+
+    await step("감싼 자식 본문도 자체 스크롤 상태에 따라 표시한다", async () => {
+      const childDialog = canvas.getByRole("dialog", { name: "스크롤 자식" });
+      const childBody = canvas.getByTestId("scroll-child-body");
+      const childHeader = childDialog.querySelector<HTMLElement>(".djy-dialog__header");
+      const childFog = childDialog.querySelector<HTMLElement>(".djy-dialog__scroll-fog");
+      if (!childHeader || !childFog) throw new Error("자식 스크롤 표시 요소가 없습니다.");
+
+      await userEvent.click(canvas.getByRole("button", { name: "자식 본문 늘리기" }));
+      await waitFor(() => expect(childDialog).toHaveAttribute("data-overflow-end", "true"));
+      childBody.scrollTop = 16;
+      fireEvent.scroll(childBody);
+      await waitFor(() => expect(childDialog).toHaveAttribute("data-scrolled-start", "true"));
+      parentBody.scrollTop = 0;
+      fireEvent.scroll(parentBody);
+
+      await expect(parentDialog).toHaveAttribute("data-scrolled-start", "false");
+      await expect(getComputedStyle(parentHeader).borderBottomColor).toBe(transparentBorder);
+      await expect(getComputedStyle(childHeader).borderBottomColor).not.toBe(transparentBorder);
+      await expect(getComputedStyle(childFog).backgroundImage).not.toBe("none");
+
+      parentBody.scrollTop = parentBody.scrollHeight;
+      fireEvent.scroll(parentBody);
+      await expect(parentDialog).toHaveAttribute("data-overflow-end", "false");
+      await expect(getComputedStyle(parentFog).backgroundImage).toBe("none");
+      await expect(getComputedStyle(childFog).backgroundImage).not.toBe("none");
+    });
+
+    fireNativeCancel(canvas.getByRole("dialog", { name: "스크롤 자식" }));
+    await waitFor(() => expect(canvas.queryByRole("dialog", { name: "스크롤 자식" })).toBeNull());
+    fireNativeCancel(parentDialog);
+    await waitFor(() => expect(parentDialog).not.toHaveAttribute("open"));
+  },
+};
+
 export const NestedInitiallyOpen: Story = {
   render: () => (
     <StrictMode>
