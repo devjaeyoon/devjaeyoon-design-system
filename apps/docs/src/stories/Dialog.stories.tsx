@@ -10,7 +10,7 @@ import {
 } from "@devjaeyoon-design-system/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { StrictMode, useRef, useState } from "react";
-import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
+import { expect, fireEvent, fn, userEvent, waitFor, within } from "storybook/test";
 
 const meta = {
   title: "Components/Dialog",
@@ -382,6 +382,86 @@ export const NestedInitiallyOpen: Story = {
       await waitFor(() =>
         expect(canvas.getByRole("button", { name: "초기 부모 Dialog 열기" })).toHaveFocus(),
       );
+    });
+  },
+};
+
+function createRefSpy() {
+  const cleanup = fn<() => void>();
+  const setup = fn((element: HTMLElement | null) => {
+    if (element) return cleanup;
+  });
+  return { setup, cleanup };
+}
+
+const refSpies = {
+  trigger: createRefSpy(),
+  content: createRefSpy(),
+  body: createRefSpy(),
+};
+
+function RefCleanupDialog() {
+  const [mounted, setMounted] = useState(true);
+  const [renders, setRenders] = useState(0);
+  return (
+    <StrictMode>
+      {mounted ? (
+        <DialogRoot defaultOpen>
+          <DialogTrigger ref={refSpies.trigger.setup}>Ref Dialog 열기</DialogTrigger>
+          <DialogContent ref={refSpies.content.setup} title="Ref 수명 주기">
+            <DialogBody ref={refSpies.body.setup}>
+              <Button onClick={() => setRenders((count) => count + 1)}>
+                다시 렌더링 {renders}
+              </Button>
+              <Button onClick={() => setMounted(false)}>Ref 요소 제거</Button>
+            </DialogBody>
+          </DialogContent>
+        </DialogRoot>
+      ) : (
+        <p>Ref 요소가 제거되었습니다.</p>
+      )}
+    </StrictMode>
+  );
+}
+
+export const RefCleanup: Story = {
+  render: () => <RefCleanupDialog />,
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() =>
+      expect(canvas.getByRole("heading", { name: "Ref 수명 주기" })).toHaveFocus(),
+    );
+    const spies = Object.values(refSpies);
+    const before = spies.map(({ setup, cleanup }) => ({
+      setups: setup.mock.calls.length,
+      cleanups: cleanup.mock.calls.length,
+    }));
+
+    await step("StrictMode에서도 각 ref는 하나의 연결만 유지한다", async () => {
+      for (const { setup, cleanup } of spies) {
+        await expect(setup.mock.calls.every(([element]) => element !== null)).toBe(true);
+        await expect(setup.mock.calls.length - cleanup.mock.calls.length).toBe(1);
+      }
+    });
+
+    await step("같은 ref로 다시 렌더링하면 다시 연결하지 않는다", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "다시 렌더링 0" }));
+      await expect(canvas.getByRole("button", { name: "다시 렌더링 1" })).toBeInTheDocument();
+      await expect(
+        spies.map(({ setup, cleanup }) => ({
+          setups: setup.mock.calls.length,
+          cleanups: cleanup.mock.calls.length,
+        })),
+      ).toEqual(before);
+    });
+
+    await step("제거할 때 null 대신 반환한 cleanup을 호출한다", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Ref 요소 제거" }));
+      await expect(canvas.getByText("Ref 요소가 제거되었습니다.")).toBeInTheDocument();
+      for (const { setup, cleanup } of spies) {
+        await expect(setup.mock.calls.every(([element]) => element !== null)).toBe(true);
+        await expect(setup.mock.calls.length - cleanup.mock.calls.length).toBe(0);
+      }
     });
   },
 };

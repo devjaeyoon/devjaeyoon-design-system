@@ -46,8 +46,23 @@ function useDialogContext(component: string) {
 }
 
 function setRef<T>(ref: Ref<T> | undefined, value: T | null) {
-  if (typeof ref === "function") ref(value);
+  if (typeof ref === "function") return ref(value);
   else if (ref) ref.current = value;
+}
+
+function useComposedRef<T>(internalRef: RefObject<T | null>, ref: Ref<T> | undefined) {
+  return useCallback(
+    (element: T | null) => {
+      internalRef.current = element;
+      const cleanup = setRef(ref, element);
+      return () => {
+        internalRef.current = null;
+        if (typeof cleanup === "function") cleanup();
+        else setRef(ref, null);
+      };
+    },
+    [internalRef, ref],
+  );
 }
 
 type DialogSession = {
@@ -235,6 +250,7 @@ export type DialogTriggerProps = ButtonProps;
 
 export function DialogTrigger({ ref, onClick, ...props }: DialogTriggerProps) {
   const { requestOpenChange, triggerRef } = useDialogContext("DialogTrigger");
+  const composedRef = useComposedRef(triggerRef, ref);
 
   return (
     <Button
@@ -243,10 +259,7 @@ export function DialogTrigger({ ref, onClick, ...props }: DialogTriggerProps) {
         onClick?.(event);
         if (!event.defaultPrevented) requestOpenChange(true);
       }}
-      ref={(element) => {
-        triggerRef.current = element;
-        setRef(ref, element);
-      }}
+      ref={composedRef}
     />
   );
 }
@@ -295,6 +308,7 @@ export function DialogContent({
   const context = useDialogContext("DialogContent");
   const openParentSession = useContext(DialogContentContext);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const composedRef = useComposedRef(dialogRef, ref);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
@@ -595,10 +609,7 @@ export function DialogContent({
         pointerStartedOutsideRef.current = null;
         if (shouldClose) context.requestOpenChange(false);
       }}
-      ref={(element) => {
-        dialogRef.current = element;
-        setRef(ref, element);
-      }}
+      ref={composedRef}
     >
       {context.open ? (
         <div className="djy-dialog__surface" ref={surfaceRef}>
@@ -646,6 +657,7 @@ export type DialogBodyProps = ComponentPropsWithRef<"div">;
 
 export function DialogBody({ className, onScroll, ref, tabIndex, ...props }: DialogBodyProps) {
   const bodyRef = useRef<HTMLDivElement>(null);
+  const composedRef = useComposedRef(bodyRef, ref);
 
   useEffect(() => {
     const body = bodyRef.current;
@@ -704,10 +716,7 @@ export function DialogBody({ className, onScroll, ref, tabIndex, ...props }: Dia
           onScroll?.(event);
         }}
         tabIndex={tabIndex}
-        ref={(element) => {
-          bodyRef.current = element;
-          setRef(ref, element);
-        }}
+        ref={composedRef}
       />
       <div aria-hidden="true" className="djy-dialog__scroll-fog" />
     </div>

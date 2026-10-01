@@ -386,6 +386,65 @@ async function checkBrowser(consumerDirectory) {
     await explicitReturnDialog.waitFor({ state: "hidden" });
     await waitForFocus(page.getByTestId("explicit-return-target"));
 
+    const refOutput = page.getByTestId("ref-events");
+    const readRefEvents = () =>
+      refOutput.evaluate((element) => JSON.parse(element.textContent ?? "[]"));
+    const refRegions = ["trigger", "content", "body"];
+    const assertRefBalance = async (version, phase, expected) => {
+      const events = await readRefEvents();
+      for (const region of refRegions) {
+        const count = (action) =>
+          events.filter((event) => event === `${region}:${version}:${action}`).length;
+        assert.equal(
+          count("attach") - count(phase),
+          expected,
+          `${region} refs at version ${version}`,
+        );
+      }
+    };
+    const openRefDialog = async () => {
+      await page.getByTestId("ref-dialog-trigger").click();
+      await waitForFocus(page.getByRole("heading", { name: "Ref lifecycle dialog" }));
+    };
+    await openRefDialog();
+    await assertRefBalance(0, "cleanup", 1);
+    assert.equal(
+      (await readRefEvents()).some((event) => event.endsWith(":null")),
+      false,
+    );
+    const beforeRerender = await readRefEvents();
+    await page.getByRole("button", { name: "Rerender refs 0" }).click();
+    assert.deepEqual(await readRefEvents(), beforeRerender);
+    await page.getByRole("button", { name: "Replace refs" }).click();
+    await assertRefBalance(0, "cleanup", 0);
+    await assertRefBalance(1, "cleanup", 1);
+    await page.getByRole("button", { name: "Unmount ref dialog" }).click();
+    await assertRefBalance(1, "cleanup", 0);
+    assert.equal(
+      (await readRefEvents()).some((event) => event.endsWith(":null")),
+      false,
+    );
+
+    await page.getByRole("button", { name: "Remount ref dialog" }).click();
+    await openRefDialog();
+    await page.getByRole("button", { name: "Replace refs" }).click();
+    await assertRefBalance(1, "cleanup", 0);
+    await assertRefBalance(2, "null", 1);
+    await page.getByRole("button", { name: "Unmount ref dialog" }).click();
+    await assertRefBalance(2, "null", 0);
+
+    await page.getByRole("button", { name: "Remount ref dialog" }).click();
+    await openRefDialog();
+    await page.getByRole("button", { name: "Replace refs" }).click();
+    await assertRefBalance(2, "null", 0);
+    await page
+      .locator('[data-testid="ref-events"][data-object-refs="[true,true,true]"]')
+      .waitFor({ state: "attached" });
+    await page.getByRole("button", { name: "Unmount ref dialog" }).click();
+    await page
+      .locator('[data-testid="ref-events"][data-object-refs="[false,false,false]"]')
+      .waitFor({ state: "attached" });
+
     const dialogTrigger = page.getByTestId("dialog-trigger");
     await dialogTrigger.click();
     const dialog = page.getByRole("dialog", { name: "Workout details" });

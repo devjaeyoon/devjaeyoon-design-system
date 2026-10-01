@@ -20,6 +20,7 @@ import {
   StrictMode,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -341,6 +342,80 @@ function ExplicitReturnDialogFixture() {
   );
 }
 
+function DialogRefFixture() {
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(true);
+  const [version, setVersion] = useState(0);
+  const [renders, setRenders] = useState(0);
+  const eventsRef = useRef<string[]>([]);
+  const outputRef = useRef<HTMLOutputElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDialogElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const refs = useMemo(() => {
+    const track = (name: string) => (element: HTMLElement | null) => {
+      const record = (phase: string) => {
+        eventsRef.current.push(`${name}:${version}:${phase}`);
+        if (outputRef.current) outputRef.current.value = JSON.stringify(eventsRef.current);
+      };
+      if (!element) {
+        record("null");
+        return;
+      }
+      record("attach");
+      if (version < 2) return () => record("cleanup");
+    };
+    return { trigger: track("trigger"), content: track("content"), body: track("body") };
+  }, [version]);
+
+  useEffect(() => {
+    const output = outputRef.current;
+    if (!output) return;
+    output.value = JSON.stringify(eventsRef.current);
+    output.dataset.objectRefs = JSON.stringify([
+      triggerRef.current !== null,
+      contentRef.current !== null,
+      bodyRef.current !== null,
+    ]);
+  });
+
+  return (
+    <section aria-label="Dialog ref fixture">
+      <output data-testid="ref-events" hidden ref={outputRef} />
+      {!mounted ? <Button onClick={() => setMounted(true)}>Remount ref dialog</Button> : null}
+      {mounted ? (
+        <DialogRoot open={open} onOpenChange={setOpen}>
+          <DialogTrigger
+            data-testid="ref-dialog-trigger"
+            ref={version === 3 ? triggerRef : refs.trigger}
+          >
+            Open ref dialog
+          </DialogTrigger>
+          <DialogContent
+            ref={version === 3 ? contentRef : refs.content}
+            title="Ref lifecycle dialog"
+          >
+            <DialogBody ref={version === 3 ? bodyRef : refs.body}>
+              <Button onClick={() => setRenders((count) => count + 1)}>
+                Rerender refs {renders}
+              </Button>
+              <Button onClick={() => setVersion((count) => count + 1)}>Replace refs</Button>
+              <Button
+                onClick={() => {
+                  setOpen(false);
+                  setMounted(false);
+                }}
+              >
+                Unmount ref dialog
+              </Button>
+            </DialogBody>
+          </DialogContent>
+        </DialogRoot>
+      ) : null}
+    </section>
+  );
+}
+
 function ConsumerApp() {
   const [name, setName] = useState("");
   const [submittedName, setSubmittedName] = useState("");
@@ -417,6 +492,7 @@ function ConsumerApp() {
       <NativeCloseDialogFixture />
       <OpenerReturnDialogFixture />
       <ExplicitReturnDialogFixture />
+      <DialogRefFixture />
       <Button
         onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
         type="button"
