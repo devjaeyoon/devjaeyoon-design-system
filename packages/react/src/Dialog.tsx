@@ -10,6 +10,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -80,8 +81,33 @@ type DialogSession = {
   initialFocusFrame: number | null;
   cleanupViewport: () => void;
   unlockScroll: () => void;
+  suspended: boolean;
+  suspendedFocus: HTMLElement | null;
   finalized: boolean;
 };
+
+function DialogVisibility({
+  onShow,
+  onHide,
+}: {
+  onShow: () => void;
+  onHide: () => (() => void) | undefined;
+}) {
+  const generationRef = useRef(0);
+  useLayoutEffect(() => {
+    const generation = ++generationRef.current;
+    onShow();
+    return () => {
+      // Capture focus while the content is still visible.
+      const suspend = onHide();
+      // StrictMode reconnects immediately; Suspense leaves layout effects disconnected.
+      queueMicrotask(() => {
+        if (generationRef.current === generation) suspend?.();
+      });
+    };
+  }, [onHide, onShow]);
+  return null;
+}
 
 type ScrollLockState = {
   count: number;
@@ -187,6 +213,18 @@ function removeDialogSession(session: DialogSession) {
 function getTopDialogSession(document: Document) {
   const stack = dialogStacks.get(document);
   return stack?.[stack.length - 1] ?? null;
+}
+
+function deactivateDialogSession(session: DialogSession) {
+  if (session.initialFocusFrame !== null) {
+    session.dialog.ownerDocument.defaultView?.cancelAnimationFrame(session.initialFocusFrame);
+    session.initialFocusFrame = null;
+  }
+  session.cleanupViewport();
+  session.cleanupViewport = () => {};
+  session.unlockScroll();
+  session.unlockScroll = () => {};
+  removeDialogSession(session);
 }
 
 function lockBackgroundScroll(document: Document) {
@@ -336,7 +374,7 @@ export function DialogContent({
   const descriptionId = useId();
   const pointerStartedOutsideRef = useRef<number | null>(null);
   const sessionRef = useRef<DialogSession | null>(null);
-  const internalCloseEventsRef = useRef(0);
+  const internalCloseEventsRef = useRef<Array<"finalize" | "suspend">>([]);
   const cancelStateRef = useRef<{
     blocked: boolean;
     reopen: boolean;
@@ -366,19 +404,11 @@ export function DialogContent({
 
       const document = session.dialog.ownerDocument;
       const view = document.defaultView;
-      if (session.initialFocusFrame !== null) {
-        view?.cancelAnimationFrame(session.initialFocusFrame);
-        session.initialFocusFrame = null;
-      }
-      session.cleanupViewport();
-      session.cleanupViewport = () => {};
-      session.unlockScroll();
-      session.unlockScroll = () => {};
-      removeDialogSession(session);
+      deactivateDialogSession(session);
       if (sessionRef.current === session) sessionRef.current = null;
 
       if (session.dialog.open) {
-        internalCloseEventsRef.current += 1;
+        internalCloseEventsRef.current.push("finalize");
         session.dialog.close();
       }
 
@@ -452,8 +482,10 @@ export function DialogContent({
 
   const openSession = useCallback(() => {
     if (!latestRef.current.context.open) return;
-    if (sessionRef.current && !sessionRef.current.finalized) return;
-    const dialog = dialogRef.current;
+    const previousSession = sessionRef.current;
+    if (previousSession && !previousSession.finalized && !previousSession.suspended) return;
+    // On Suspense reveal, the visibility sibling runs before host refs reconnect.
+    const dialog = dialogRef.current ?? previousSession?.dialog;
     if (!dialog) return;
 
     // Child effects run first, so open ancestors before adding this dialog to the top layer.
@@ -463,7 +495,7 @@ export function DialogContent({
     cancelPendingReturnFocus();
     const document = dialog.ownerDocument;
     const view = document.defaultView;
-    const session: DialogSession = {
+    const session: DialogSession = previousSession ?? {
       id: ++nextDialogSessionId,
       dialog,
       opener: getMeaningfulActiveElement(document),
@@ -472,6 +504,8 @@ export function DialogContent({
       initialFocusFrame: null,
       cleanupViewport: () => {},
       unlockScroll: () => {},
+      suspended: false,
+      suspendedFocus: null,
       finalized: false,
     };
     sessionRef.current = session;
@@ -482,6 +516,7 @@ export function DialogContent({
       sessionRef.current = null;
       throw error;
     }
+    session.suspended = false;
     session.nativeInitialFocus = getActiveElement(document);
     setContentSessionId(session.id);
 
@@ -504,6 +539,36 @@ export function DialogContent({
       view?.visualViewport?.removeEventListener("scroll", updateViewport);
     };
   }, [cancelPendingReturnFocus, openParentSession]);
+
+  const suspendSession = useCallback(() => {
+    const session = sessionRef.current;
+    if (!session || session.finalized || session.suspended) return;
+    const focus = getMeaningfulActiveElement(session.dialog.ownerDocument, session.dialog);
+    return () => {
+      if (session.finalized || session.suspended) return;
+      session.suspended = true;
+      session.suspendedFocus = focus;
+      pointerStartedOutsideRef.current = null;
+      deactivateDialogSession(session);
+      if (session.dialog.open) {
+        internalCloseEventsRef.current.push("suspend");
+        session.dialog.close();
+      }
+    };
+  }, []);
+
+  const resumeSession = useCallback(() => {
+    const session = sessionRef.current;
+    if (!session?.suspended) return;
+    openSession();
+    if (session.suspended || session.finalized) return;
+    focusFirstValid(
+      [session.suspendedFocus, session.dialog.querySelector<HTMLElement>(".djy-dialog__title")],
+      session.dialog.ownerDocument,
+      session.dialog,
+    );
+    session.suspendedFocus = null;
+  }, [openSession]);
 
   useEffect(() => {
     const session = sessionRef.current;
@@ -606,11 +671,10 @@ export function DialogContent({
       }}
       onClose={(event) => {
         if (event.target !== event.currentTarget) return;
+        const internalClose = internalCloseEventsRef.current.shift();
+        if (internalClose === "suspend") return;
         onClose?.(event);
-        if (internalCloseEventsRef.current > 0) {
-          internalCloseEventsRef.current -= 1;
-          return;
-        }
+        if (internalClose) return;
         const { reopen: shouldReopen, focus } = cancelStateRef.current;
         const session = sessionRef.current;
         if (shouldReopen && latestRef.current.context.open && session) {
@@ -666,6 +730,8 @@ export function DialogContent({
       }}
       ref={composedRef}
     >
+      {/* Resume before descendants mount so React autoFocus can focus inside the modal. */}
+      <DialogVisibility onHide={suspendSession} onShow={resumeSession} />
       {context.open ? (
         <div className="djy-dialog__surface" ref={surfaceRef}>
           <header className="djy-dialog__header">

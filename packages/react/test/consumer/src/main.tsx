@@ -16,8 +16,11 @@ import {
 } from "@devjaeyoon-design-system/react";
 import {
   type CSSProperties,
+  lazy,
   type ReactNode,
   StrictMode,
+  Suspense,
+  use,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -98,6 +101,84 @@ function HydrationFixture() {
         </DialogBody>
       </DialogContent>
     </DialogRoot>
+  );
+}
+
+function createSuspenseRequest() {
+  let resolve = () => {};
+  const promise = new Promise<void>((complete) => {
+    resolve = complete;
+  });
+  return { promise, resolve };
+}
+
+function SuspenseInput({ request }: { request: ReturnType<typeof createSuspenseRequest> }) {
+  use(request.promise);
+  return <TextField autoFocus label="Suspense draft" />;
+}
+
+function DialogSuspenseFixture() {
+  const [content] = useState(() => {
+    const request = createSuspenseRequest();
+    return {
+      Component: lazy(() => request.promise.then(() => ({ default: SuspenseInput }))),
+      resolve: request.resolve,
+    };
+  });
+  const [request, setRequest] = useState(createSuspenseRequest);
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(true);
+  const [closeCount, setCloseCount] = useState(0);
+  const [nativeCloseCount, setNativeCloseCount] = useState(0);
+  return (
+    <section aria-label="Dialog Suspense fixture">
+      <span data-testid="suspense-close-count">{closeCount}</span>
+      <span data-testid="suspense-native-close-count">{nativeCloseCount}</span>
+      <Suspense
+        fallback={
+          <div>
+            <Button
+              onClick={() => {
+                content.resolve();
+                request.resolve();
+              }}
+            >
+              Resolve Suspense content
+            </Button>
+            <Button onClick={() => setOpen(false)}>Cancel Suspense loading</Button>
+            <Button onClick={() => setMounted(false)}>Unmount suspended dialog</Button>
+          </div>
+        }
+      >
+        <DialogRoot
+          open={open}
+          onOpenChange={(nextOpen) => {
+            setOpen(nextOpen);
+            if (!nextOpen) setRequest(createSuspenseRequest());
+          }}
+        >
+          <DialogTrigger>Open Suspense dialog</DialogTrigger>
+          {mounted ? (
+            <DialogContent
+              data-testid="suspense-dialog"
+              onClose={() => setNativeCloseCount((count) => count + 1)}
+              onCloseAutoFocus={() => setCloseCount((count) => count + 1)}
+              title="Suspense dialog"
+            >
+              <DialogBody>
+                <content.Component request={request} />
+              </DialogBody>
+              <DialogFooter>
+                <Button onClick={() => setRequest(createSuspenseRequest())}>
+                  Reload Suspense content
+                </Button>
+                <DialogClose>Close Suspense dialog</DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          ) : null}
+        </DialogRoot>
+      </Suspense>
+    </section>
   );
 }
 
@@ -546,6 +627,7 @@ function ConsumerApp() {
       <ExplicitReturnDialogFixture />
       <DialogRefFixture />
       <DialogInteractionFixture />
+      <DialogSuspenseFixture />
       <Button
         onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
         type="button"

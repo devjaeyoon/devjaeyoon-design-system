@@ -9,7 +9,7 @@ import {
   TextField,
 } from "@devjaeyoon-design-system/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { StrictMode, useRef, useState } from "react";
+import { act, StrictMode, Suspense, use, useRef, useState } from "react";
 import { expect, fireEvent, fn, userEvent, waitFor, within } from "storybook/test";
 
 const meta = {
@@ -120,6 +120,233 @@ export const AutoFocus: Story = {
       await userEvent.click(canvas.getByRole("button", { name: "자동 포커스 닫기" }));
       await waitFor(() => expect(trigger).toHaveFocus());
     });
+  },
+};
+
+function createSuspenseRequest() {
+  let resolve = () => {};
+  const promise = new Promise<void>((complete) => {
+    resolve = complete;
+  });
+  return { promise, resolve };
+}
+
+async function clickSuspenseButton(element: HTMLElement) {
+  if (typeof act !== "function") {
+    element.focus();
+    fireEvent.click(element);
+    return;
+  }
+  // Await Suspense retries instead of Storybook's synchronous event act wrapper.
+  const previousEnvironment = Reflect.get(globalThis, "IS_REACT_ACT_ENVIRONMENT");
+  Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+  try {
+    await act(async () => {
+      element.focus();
+      fireEvent.click(element);
+    });
+  } finally {
+    Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", previousEnvironment);
+  }
+}
+
+function SuspenseField({ request }: { request: ReturnType<typeof createSuspenseRequest> }) {
+  use(request.promise);
+  return <TextField autoFocus label="비동기 입력" />;
+}
+
+function SuspenseDialog() {
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(true);
+  const [request, setRequest] = useState(createSuspenseRequest);
+  const [closeCount, setCloseCount] = useState(0);
+  const [nativeCloseCount, setNativeCloseCount] = useState(0);
+  return (
+    <StrictMode>
+      <span data-testid="suspense-close-count">{closeCount}</span>
+      <span data-testid="suspense-native-close-count">{nativeCloseCount}</span>
+      <Suspense
+        fallback={
+          <div>
+            <Button onClick={request.resolve}>본문 로딩 완료</Button>
+            <Button onClick={() => setOpen(false)}>본문 로딩 취소</Button>
+            <Button onClick={() => setMounted(false)}>로딩 중 Content 제거</Button>
+          </div>
+        }
+      >
+        <DialogRoot
+          open={open}
+          onOpenChange={(nextOpen) => {
+            setOpen(nextOpen);
+            if (!nextOpen) setRequest(createSuspenseRequest());
+          }}
+        >
+          <DialogTrigger>비동기 Dialog 열기</DialogTrigger>
+          {mounted ? (
+            <DialogContent
+              data-testid="suspense-dialog"
+              onClose={() => setNativeCloseCount((count) => count + 1)}
+              onCloseAutoFocus={() => setCloseCount((count) => count + 1)}
+              title="외부 Suspense"
+            >
+              <DialogBody>
+                <SuspenseField request={request} />
+              </DialogBody>
+              <DialogFooter>
+                <Button onClick={() => setRequest(createSuspenseRequest())}>본문 다시 로딩</Button>
+                <DialogClose>비동기 Dialog 닫기</DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          ) : null}
+        </DialogRoot>
+      </Suspense>
+    </StrictMode>
+  );
+}
+
+export const ExternalSuspense: Story = {
+  render: () => <SuspenseDialog />,
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const document = canvasElement.ownerDocument;
+    const parent = canvas.queryByRole("dialog", { name: "Suspense 부모" });
+    const trigger = canvas.getByRole("button", { name: "비동기 Dialog 열기" });
+    const closeCount = canvas.getByTestId("suspense-close-count");
+    const nativeCloseCount = canvas.getByTestId("suspense-native-close-count");
+    const expectLoading = async () => {
+      await waitFor(() =>
+        expect(canvas.getByRole("button", { name: "본문 로딩 완료" })).toBeVisible(),
+      );
+      await waitFor(() => {
+        expect(canvas.getByTestId("suspense-dialog").matches(":modal")).toBe(false);
+        expect(document.documentElement.style.overflow).toBe(parent ? "hidden" : "");
+      });
+      if (parent) await expect(parent.matches(":modal")).toBe(true);
+    };
+
+    await step("로딩 fallback은 모달에 막히지 않고 닫기 콜백도 발생하지 않는다", async () => {
+      await clickSuspenseButton(trigger);
+      await expectLoading();
+      await expect(closeCount).toHaveTextContent("0");
+      await expect(nativeCloseCount).toHaveTextContent("0");
+      await clickSuspenseButton(canvas.getByRole("button", { name: "본문 로딩 완료" }));
+      await waitFor(() =>
+        expect(canvas.getByRole("textbox", { name: "비동기 입력" })).toHaveFocus(),
+      );
+    });
+
+    await step("다시 suspend해도 입력 DOM과 값, 기존 포커스를 유지한다", async () => {
+      const input = canvas.getByRole("textbox", { name: "비동기 입력" });
+      await userEvent.type(input, "보존할 입력");
+      const reload = canvas.getByRole("button", { name: "본문 다시 로딩" });
+      await clickSuspenseButton(reload);
+      await expectLoading();
+      await clickSuspenseButton(canvas.getByRole("button", { name: "본문 로딩 완료" }));
+      await waitFor(() => expect(reload).toHaveFocus());
+      await expect(canvas.getByRole("textbox", { name: "비동기 입력" })).toBe(input);
+      await expect(input).toHaveValue("보존할 입력");
+      await expect(closeCount).toHaveTextContent("0");
+      await expect(nativeCloseCount).toHaveTextContent("0");
+      await clickSuspenseButton(canvas.getByRole("button", { name: "비동기 Dialog 닫기" }));
+      await waitFor(() => expect(trigger).toHaveFocus());
+      await waitFor(() => expect(closeCount).toHaveTextContent("1"));
+      await waitFor(() => expect(nativeCloseCount).toHaveTextContent("1"));
+    });
+
+    await step("로딩 취소와 Content 제거는 실제 닫기로 한 번 처리한다", async () => {
+      await clickSuspenseButton(trigger);
+      await expectLoading();
+      await clickSuspenseButton(canvas.getByRole("button", { name: "본문 로딩 취소" }));
+      await waitFor(() => expect(trigger).toHaveFocus());
+      await waitFor(() => expect(closeCount).toHaveTextContent("2"));
+      await clickSuspenseButton(trigger);
+      await expectLoading();
+      await clickSuspenseButton(canvas.getByRole("button", { name: "로딩 중 Content 제거" }));
+      await waitFor(() => expect(trigger).toHaveFocus());
+      await waitFor(() => expect(closeCount).toHaveTextContent("3"));
+      await expect(nativeCloseCount).toHaveTextContent("1");
+      if (parent) {
+        fireNativeCancel(parent);
+        await waitFor(() => expect(parent).not.toHaveAttribute("open"));
+      }
+      await expect(document.documentElement.style.overflow).toBe("");
+      await expect(document.body.style.overflow).toBe("");
+    });
+  },
+};
+
+export const NestedSuspense: Story = {
+  ...ExternalSuspense,
+  render: () => (
+    <DialogRoot defaultOpen>
+      <DialogTrigger>Suspense 부모 열기</DialogTrigger>
+      <DialogContent title="Suspense 부모">
+        <DialogBody>
+          <SuspenseDialog />
+        </DialogBody>
+      </DialogContent>
+    </DialogRoot>
+  ),
+};
+
+function SuspendedAncestorsDialog() {
+  const [open, setOpen] = useState(false);
+  const [request] = useState(createSuspenseRequest);
+  return (
+    <StrictMode>
+      <Suspense fallback={<Button onClick={request.resolve}>부모·자식 로딩 완료</Button>}>
+        <DialogRoot open={open} onOpenChange={setOpen}>
+          <DialogTrigger>비동기 부모 열기</DialogTrigger>
+          <DialogContent title="비동기 부모">
+            <DialogBody>
+              <DialogRoot defaultOpen>
+                <DialogTrigger>비동기 자식 열기</DialogTrigger>
+                <DialogContent title="비동기 자식">
+                  <DialogBody>
+                    <SuspenseField request={request} />
+                  </DialogBody>
+                </DialogContent>
+              </DialogRoot>
+            </DialogBody>
+          </DialogContent>
+        </DialogRoot>
+      </Suspense>
+    </StrictMode>
+  );
+}
+
+export const SuspendedAncestors: Story = {
+  render: () => <SuspendedAncestorsDialog />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const document = canvasElement.ownerDocument;
+    const trigger = canvas.getByRole("button", { name: "비동기 부모 열기" });
+    await clickSuspenseButton(trigger);
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "부모·자식 로딩 완료" })).toBeVisible(),
+    );
+    await waitFor(() => {
+      expect(canvasElement.querySelectorAll("dialog:modal")).toHaveLength(0);
+      expect(document.documentElement.style.overflow).toBe("");
+    });
+    await clickSuspenseButton(canvas.getByRole("button", { name: "부모·자식 로딩 완료" }));
+    await waitFor(() => expect(canvas.getByRole("textbox", { name: "비동기 입력" })).toHaveFocus());
+    const parent = canvas.getByRole("dialog", { name: "비동기 부모" });
+    const child = canvas.getByRole("dialog", { name: "비동기 자식" });
+    await expect(parent.matches(":modal")).toBe(true);
+    await expect(child.matches(":modal")).toBe(true);
+    fireNativeCancel(child);
+    await waitFor(() => expect(child).not.toHaveAttribute("open"));
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "비동기 자식 열기" })).toHaveFocus(),
+    );
+    await expect(parent.matches(":modal")).toBe(true);
+    await expect(document.documentElement.style.overflow).toBe("hidden");
+    fireNativeCancel(parent);
+    await waitFor(() => expect(parent).not.toHaveAttribute("open"));
+    await waitFor(() => expect(trigger).toHaveFocus());
+    await expect(document.documentElement.style.overflow).toBe("");
+    await expect(document.body.style.overflow).toBe("");
   },
 };
 

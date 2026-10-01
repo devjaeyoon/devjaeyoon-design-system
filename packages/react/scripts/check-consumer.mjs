@@ -362,6 +362,64 @@ async function checkBrowser(consumerDirectory) {
       false,
     );
 
+    const suspenseTrigger = page.getByRole("button", { name: "Open Suspense dialog" });
+    const suspenseDialog = page.getByTestId("suspense-dialog");
+    const suspenseCloseCount = page.getByTestId("suspense-close-count");
+    const suspenseNativeCloseCount = page.getByTestId("suspense-native-close-count");
+    const resolveSuspense = page.getByRole("button", { name: "Resolve Suspense content" });
+    const waitForSuspenseFallback = async () => {
+      await resolveSuspense.waitFor({ state: "visible" });
+      await page.waitForFunction(
+        () =>
+          !document.querySelector('[data-testid="suspense-dialog"]').matches(":modal") &&
+          document.documentElement.style.overflow === "" &&
+          document.body.style.overflow === "",
+      );
+    };
+    await suspenseTrigger.click();
+    await waitForSuspenseFallback();
+    assert.equal(await suspenseCloseCount.textContent(), "0");
+    assert.equal(await suspenseNativeCloseCount.textContent(), "0");
+    // A physical click verifies the fallback is outside any native modal's inert background.
+    await resolveSuspense.click();
+    const suspenseInput = page.getByRole("textbox", { name: "Suspense draft" });
+    await waitForFocus(suspenseInput);
+    await suspenseInput.fill("Preserved across Suspense");
+    const savedInput = await suspenseInput.elementHandle();
+    assert.ok(savedInput);
+    const reloadSuspense = page.getByRole("button", { name: "Reload Suspense content" });
+    await reloadSuspense.click();
+    await waitForSuspenseFallback();
+    await resolveSuspense.click();
+    await waitForFocus(reloadSuspense);
+    assert.equal(
+      await suspenseInput.evaluate((element, saved) => element === saved, savedInput),
+      true,
+    );
+    assert.equal(await suspenseInput.inputValue(), "Preserved across Suspense");
+    await savedInput.dispose();
+    assert.equal(await suspenseDialog.evaluate((element) => element.matches(":modal")), true);
+    assert.equal(await suspenseCloseCount.textContent(), "0");
+    assert.equal(await suspenseNativeCloseCount.textContent(), "0");
+    await page.keyboard.press("Escape");
+    await waitForFocus(suspenseTrigger);
+    await suspenseCloseCount.filter({ hasText: "1" }).waitFor();
+    await suspenseNativeCloseCount.filter({ hasText: "1" }).waitFor();
+    await suspenseTrigger.click();
+    await waitForSuspenseFallback();
+    await page.getByRole("button", { name: "Cancel Suspense loading" }).click();
+    await waitForFocus(suspenseTrigger);
+    await suspenseCloseCount.filter({ hasText: "2" }).waitFor();
+    await suspenseTrigger.click();
+    await waitForSuspenseFallback();
+    await page.getByRole("button", { name: "Unmount suspended dialog" }).click();
+    await waitForFocus(suspenseTrigger);
+    await suspenseCloseCount.filter({ hasText: "3" }).waitFor();
+    assert.equal(await suspenseDialog.count(), 0);
+    assert.equal(await suspenseNativeCloseCount.textContent(), "1");
+    assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
+    assert.equal(await page.locator("body").evaluate((element) => element.style.overflow), "");
+
     const nativeCloseTrigger = page.getByTestId("native-close-trigger");
     await nativeCloseTrigger.click();
     const nativeCloseDialog = page.getByRole("dialog", { name: "Native close dialog" });
