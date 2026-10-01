@@ -445,6 +445,34 @@ async function checkBrowser(consumerDirectory) {
       .locator('[data-testid="ref-events"][data-object-refs="[false,false,false]"]')
       .waitFor({ state: "attached" });
 
+    const interactionDialog = page.getByRole("dialog", { name: "Interaction dialog" });
+    for (const label of ["First", "Second"]) {
+      const trigger = page.getByRole("button", { name: `${label} interaction trigger` });
+      await trigger.click();
+      await waitForFocus(page.getByRole("textbox", { name: "Interaction autofocus" }));
+      await page.getByRole("button", { name: "Rerender interaction triggers" }).click();
+      await page.keyboard.press("Escape");
+      await interactionDialog.waitFor({ state: "hidden" });
+      await waitForFocus(trigger);
+    }
+    const interactionTrigger = page.getByRole("button", { name: "First interaction trigger" });
+    await interactionTrigger.click();
+    await waitForFocus(page.getByRole("textbox", { name: "Interaction autofocus" }));
+    for (const button of ["right", "middle"]) {
+      await page.mouse.click(1, 1, { button });
+      assert.equal(await interactionDialog.evaluate((element) => element.matches(":modal")), true);
+    }
+    const surface = await interactionDialog.locator(".djy-dialog__surface").boundingBox();
+    assert.ok(surface);
+    await page.mouse.move(surface.x + 16, surface.y + 16);
+    await page.mouse.down();
+    await page.mouse.move(1, 1);
+    await page.mouse.up();
+    assert.equal(await interactionDialog.isVisible(), true);
+    await page.mouse.click(1, 1);
+    await interactionDialog.waitFor({ state: "hidden" });
+    await waitForFocus(interactionTrigger);
+
     const dialogTrigger = page.getByTestId("dialog-trigger");
     await dialogTrigger.click();
     const dialog = page.getByRole("dialog", { name: "Workout details" });
@@ -695,6 +723,36 @@ async function checkBrowser(consumerDirectory) {
         );
       }
     }
+    await page.goto(`http://127.0.0.1:${address.port}/hydration.html`, {
+      waitUntil: "networkidle",
+    });
+    const hydratedParent = page.getByRole("dialog", { name: "Hydrated parent" });
+    const hydratedChild = page.getByRole("dialog", { name: "Hydrated child" });
+    await waitForFocus(page.getByRole("textbox", { name: "Hydrated autofocus" }));
+    assert.equal(await hydratedParent.evaluate((element) => element.matches(":modal")), true);
+    assert.equal(await hydratedChild.evaluate((element) => element.matches(":modal")), true);
+    assert.equal(
+      await page
+        .locator("#hydration-input")
+        .evaluate((element) => element === window.hydratedInput),
+      true,
+    );
+    assert.equal(await page.locator("#hydration-input").inputValue(), "Before hydration");
+    await page.keyboard.press("Escape");
+    await hydratedChild.waitFor({ state: "hidden" });
+    await waitForFocus(page.getByRole("button", { name: "Hydrated child trigger" }));
+    await page.keyboard.press("Escape");
+    await hydratedParent.waitFor({ state: "hidden" });
+    const hydratedTrigger = page.getByRole("button", { name: "Hydrated parent trigger" });
+    await waitForFocus(hydratedTrigger);
+    await hydratedTrigger.click();
+    await waitForFocus(page.getByRole("textbox", { name: "Hydrated autofocus" }));
+    await page.keyboard.press("Escape");
+    await hydratedChild.waitFor({ state: "hidden" });
+    await page.keyboard.press("Escape");
+    await hydratedParent.waitFor({ state: "hidden" });
+    await waitForFocus(hydratedTrigger);
+    assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
     assert.deepEqual(runtimeErrors, []);
   } finally {
     await browser?.close();

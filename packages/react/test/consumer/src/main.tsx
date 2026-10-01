@@ -24,7 +24,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 
 type Theme = "light" | "dark";
 
@@ -46,6 +46,58 @@ function AutofocusTarget({
     <button data-testid={testId} hidden={hidden} ref={ref} type="button">
       {children}
     </button>
+  );
+}
+
+function ReactAutofocusInput() {
+  return <TextField autoFocus label="Interaction autofocus" />;
+}
+
+function DialogInteractionFixture() {
+  const [revision, setRevision] = useState(0);
+  return (
+    <DialogRoot closeOnInteractOutside>
+      {["First", "Second"].map((label) => (
+        <DialogTrigger
+          key={label}
+          ref={(element) => {
+            if (element) element.dataset.revision = String(revision);
+          }}
+        >
+          {label} interaction trigger
+        </DialogTrigger>
+      ))}
+      <DialogContent title="Interaction dialog">
+        <DialogBody>
+          <input aria-label="Ordinary input" />
+          <ReactAutofocusInput />
+          <Button onClick={() => setRevision((value) => value + 1)}>
+            Rerender interaction triggers
+          </Button>
+        </DialogBody>
+      </DialogContent>
+    </DialogRoot>
+  );
+}
+
+function HydrationFixture() {
+  return (
+    <DialogRoot defaultOpen>
+      <DialogTrigger>Hydrated parent trigger</DialogTrigger>
+      <DialogContent title="Hydrated parent">
+        <DialogBody>
+          <input id="hydration-input" aria-label="Hydrated draft" defaultValue="SSR draft" />
+          <DialogRoot defaultOpen>
+            <DialogTrigger>Hydrated child trigger</DialogTrigger>
+            <DialogContent title="Hydrated child">
+              <DialogBody>
+                <TextField autoFocus label="Hydrated autofocus" />
+              </DialogBody>
+            </DialogContent>
+          </DialogRoot>
+        </DialogBody>
+      </DialogContent>
+    </DialogRoot>
   );
 }
 
@@ -493,6 +545,7 @@ function ConsumerApp() {
       <OpenerReturnDialogFixture />
       <ExplicitReturnDialogFixture />
       <DialogRefFixture />
+      <DialogInteractionFixture />
       <Button
         onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
         type="button"
@@ -594,8 +647,17 @@ function ConsumerApp() {
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Expected the consumer app root element.");
 
-createRoot(rootElement).render(
-  <StrictMode>
-    <ConsumerApp />
-  </StrictMode>,
-);
+if (location.pathname.endsWith("/hydration.html")) {
+  hydrateRoot(
+    rootElement,
+    <StrictMode>
+      <HydrationFixture />
+    </StrictMode>,
+  );
+} else {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <ConsumerApp />
+    </StrictMode>,
+  );
+}

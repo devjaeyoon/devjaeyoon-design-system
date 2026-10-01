@@ -61,6 +61,162 @@ export const Default: Story = {
   },
 };
 
+function AutofocusFields() {
+  return <TextField autoFocus label="자동 포커스 입력" />;
+}
+
+function AutoFocusDialog() {
+  const firstRef = useRef<HTMLInputElement>(null);
+  const [explicitFocus, setExplicitFocus] = useState(false);
+
+  return (
+    <StrictMode>
+      <DialogRoot>
+        <DialogTrigger>자동 포커스 Dialog 열기</DialogTrigger>
+        <DialogContent
+          {...(explicitFocus ? { initialFocusRef: firstRef } : {})}
+          title="자동 포커스"
+        >
+          <DialogBody>
+            <TextField label="명시적 포커스 입력" ref={firstRef} />
+            <AutofocusFields />
+          </DialogBody>
+          <DialogFooter>
+            <Button onClick={() => setExplicitFocus(true)}>명시적 초기 포커스 사용</Button>
+            <DialogClose>자동 포커스 닫기</DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
+    </StrictMode>
+  );
+}
+
+export const AutoFocus: Story = {
+  render: () => <AutoFocusDialog />,
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("button", { name: "자동 포커스 Dialog 열기" });
+
+    await step("React autoFocus가 내부 컴포넌트에서도 열기와 재열기에 적용된다", async () => {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        await userEvent.click(trigger);
+        await waitFor(() =>
+          expect(canvas.getByRole("textbox", { name: "자동 포커스 입력" })).toHaveFocus(),
+        );
+        await userEvent.click(canvas.getByRole("button", { name: "자동 포커스 닫기" }));
+        await waitFor(() => expect(trigger).toHaveFocus());
+      }
+    });
+
+    await step("initialFocusRef는 React autoFocus보다 우선한다", async () => {
+      await userEvent.click(trigger);
+      await userEvent.click(canvas.getByRole("button", { name: "명시적 초기 포커스 사용" }));
+      await userEvent.click(canvas.getByRole("button", { name: "자동 포커스 닫기" }));
+      await waitFor(() => expect(trigger).toHaveFocus());
+      await userEvent.click(trigger);
+      await waitFor(() =>
+        expect(canvas.getByRole("textbox", { name: "명시적 포커스 입력" })).toHaveFocus(),
+      );
+      await userEvent.click(canvas.getByRole("button", { name: "자동 포커스 닫기" }));
+      await waitFor(() => expect(trigger).toHaveFocus());
+    });
+  },
+};
+
+function MultipleTriggerDialog() {
+  const [revision, setRevision] = useState(0);
+  return (
+    <DialogRoot>
+      {["첫 번째", "두 번째"].map((label) => (
+        <DialogTrigger
+          key={label}
+          ref={(element) => {
+            if (element) element.dataset.revision = String(revision);
+          }}
+        >
+          {label} Trigger
+        </DialogTrigger>
+      ))}
+      <DialogContent title="여러 Trigger">
+        <DialogBody>실제로 Dialog를 연 버튼으로 복귀합니다.</DialogBody>
+        <DialogFooter>
+          <Button onClick={() => setRevision((value) => value + 1)}>Trigger 다시 렌더링</Button>
+          <DialogClose>여러 Trigger 닫기</DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </DialogRoot>
+  );
+}
+
+export const MultipleTriggers: Story = {
+  render: () => <MultipleTriggerDialog />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const label of ["첫 번째", "두 번째"]) {
+      const trigger = canvas.getByRole("button", { name: `${label} Trigger` });
+      await userEvent.click(trigger);
+      await userEvent.click(canvas.getByRole("button", { name: "Trigger 다시 렌더링" }));
+      await userEvent.click(canvas.getByRole("button", { name: "여러 Trigger 닫기" }));
+      await waitFor(() => expect(trigger).toHaveFocus());
+    }
+  },
+};
+
+export const OutsidePointer: Story = {
+  render: () => (
+    <DialogRoot closeOnInteractOutside>
+      <DialogTrigger>바깥 클릭 Dialog 열기</DialogTrigger>
+      <DialogContent title="바깥 클릭">
+        <DialogBody>주 버튼으로 바깥 영역을 클릭할 때만 닫힙니다.</DialogBody>
+      </DialogContent>
+    </DialogRoot>
+  ),
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("button", { name: "바깥 클릭 Dialog 열기" });
+    await userEvent.click(trigger);
+    const dialog = canvas.getByRole("dialog", { name: "바깥 클릭" });
+    const outside = { pointerId: 1, isPrimary: true, clientX: 0, clientY: 0 };
+
+    await step("우클릭과 중간 버튼, 보조 포인터는 닫기로 처리하지 않는다", async () => {
+      for (const pointer of [
+        { ...outside, button: 2 },
+        { ...outside, button: 1 },
+        { ...outside, button: 0, isPrimary: false },
+      ]) {
+        fireEvent.pointerDown(dialog, pointer);
+        fireEvent.pointerUp(dialog, pointer);
+        await expect(dialog).toHaveAttribute("open");
+      }
+    });
+
+    await step("취소된 포인터와 안에서 시작한 드래그는 닫기로 처리하지 않는다", async () => {
+      fireEvent.pointerDown(dialog, { ...outside, button: 0 });
+      fireEvent.pointerCancel(dialog, outside);
+      fireEvent.pointerUp(dialog, { ...outside, button: 0 });
+      await expect(dialog).toHaveAttribute("open");
+      const surface = dialog.querySelector(".djy-dialog__surface");
+      if (!surface) throw new Error("Dialog surface가 없습니다.");
+      const bounds = surface.getBoundingClientRect();
+      fireEvent.pointerDown(dialog, {
+        ...outside,
+        button: 0,
+        clientX: bounds.left + bounds.width / 2,
+        clientY: bounds.top + bounds.height / 2,
+      });
+      fireEvent.pointerUp(dialog, { ...outside, button: 0 });
+      await expect(dialog).toHaveAttribute("open");
+    });
+
+    await step("주 버튼의 바깥 클릭은 닫고 Trigger로 복귀한다", async () => {
+      fireEvent.pointerDown(dialog, { ...outside, button: 0 });
+      fireEvent.pointerUp(dialog, { ...outside, button: 0 });
+      await waitFor(() => expect(dialog).not.toHaveAttribute("open"));
+      await waitFor(() => expect(trigger).toHaveFocus());
+    });
+  },
+};
+
 function FormDialog() {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -285,6 +441,68 @@ export const DynamicText: Story = {
       await expect(getComputedStyle(fog).backgroundImage).toBe("none");
     });
 
+    fireNativeCancel(dialog);
+    await waitFor(() => expect(dialog).not.toHaveAttribute("open"));
+  },
+};
+
+function AttributeUpdateDialog() {
+  const [visibility, setVisibility] = useState<"hidden" | "visible" | "style" | "class">("hidden");
+  return (
+    <DialogRoot>
+      <DialogTrigger>속성 갱신 Dialog 열기</DialogTrigger>
+      <DialogContent title="속성 갱신">
+        <DialogBody data-testid="attribute-body" style={{ height: 160, whiteSpace: "pre-wrap" }}>
+          <div style={{ height: 80 }}>
+            <p
+              className={visibility === "class" ? "djy-sr-only" : undefined}
+              hidden={visibility === "hidden"}
+              style={{ margin: 0, display: visibility === "style" ? "none" : undefined }}
+            >
+              {"숨겨진 운동 기록을 확인합니다.\n".repeat(40)}
+            </p>
+          </div>
+        </DialogBody>
+        <DialogFooter>
+          <Button onClick={() => setVisibility("visible")}>내용 표시</Button>
+          <Button onClick={() => setVisibility("hidden")}>hidden으로 숨기기</Button>
+          <Button onClick={() => setVisibility("style")}>style로 숨기기</Button>
+          <Button onClick={() => setVisibility("class")}>class로 숨기기</Button>
+        </DialogFooter>
+      </DialogContent>
+    </DialogRoot>
+  );
+}
+
+export const DynamicAttributes: Story = {
+  render: () => <AttributeUpdateDialog />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "속성 갱신 Dialog 열기" }));
+    const dialog = canvas.getByRole("dialog", { name: "속성 갱신" });
+    const body = canvas.getByTestId("attribute-body");
+    const wrapper = body.firstElementChild;
+    const paragraph = body.querySelector("p");
+    const fog = dialog.querySelector<HTMLElement>(".djy-dialog__scroll-fog");
+    if (!fog) throw new Error("하단 스크롤 표시가 없습니다.");
+
+    for (const attribute of ["hidden", "style", "class"]) {
+      await userEvent.click(canvas.getByRole("button", { name: "내용 표시" }));
+      await expect(body.querySelector("p")).toBe(paragraph);
+      await expect(body.clientHeight).toBe(160);
+      await expect(wrapper?.clientHeight).toBe(80);
+      await waitFor(() => expect(dialog).toHaveAttribute("data-overflow-end", "true"));
+      await expect(body).toHaveAttribute("tabindex", "0");
+      await expect(getComputedStyle(fog).backgroundImage).not.toBe("none");
+      await userEvent.click(
+        canvas.getByRole("button", {
+          name: `${attribute}${attribute === "hidden" ? "으로" : "로"} 숨기기`,
+        }),
+      );
+      await waitFor(() => expect(dialog).toHaveAttribute("data-overflow-end", "false"));
+      await expect(body).not.toHaveAttribute("tabindex");
+      await expect(getComputedStyle(fog).backgroundImage).toBe("none");
+    }
     fireNativeCancel(dialog);
     await waitFor(() => expect(dialog).not.toHaveAttribute("open"));
   },

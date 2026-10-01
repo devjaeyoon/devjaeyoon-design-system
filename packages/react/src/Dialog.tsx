@@ -13,6 +13,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { Button, type ButtonProps } from "./Button.js";
 import { IconButton } from "./IconButton.js";
@@ -34,10 +35,15 @@ type DialogContextValue = {
   closeOnEscape: boolean;
   requestOpenChange: (open: boolean) => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
+  activeTriggerRef: RefObject<HTMLButtonElement | null>;
 };
 
 const DialogContext = createContext<DialogContextValue | null>(null);
 const DialogContentContext = createContext<(() => void) | null>(null);
+
+function subscribeToHydration() {
+  return () => {};
+}
 
 function useDialogContext(component: string) {
   const context = useContext(DialogContext);
@@ -69,6 +75,8 @@ type DialogSession = {
   id: number;
   dialog: HTMLDialogElement;
   opener: HTMLElement | null;
+  trigger: HTMLButtonElement | null;
+  nativeInitialFocus: HTMLElement | null;
   initialFocusFrame: number | null;
   cleanupViewport: () => void;
   unlockScroll: () => void;
@@ -222,6 +230,7 @@ export function DialogRoot({
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
   const open = controlledOpen ?? uncontrolledOpen;
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const activeTriggerRef = useRef<HTMLButtonElement>(null);
 
   const requestOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -239,6 +248,7 @@ export function DialogRoot({
       closeOnEscape,
       requestOpenChange,
       triggerRef,
+      activeTriggerRef,
     }),
     [closeOnEscape, closeOnInteractOutside, open, requestOpenChange],
   );
@@ -249,7 +259,7 @@ export function DialogRoot({
 export type DialogTriggerProps = ButtonProps;
 
 export function DialogTrigger({ ref, onClick, ...props }: DialogTriggerProps) {
-  const { requestOpenChange, triggerRef } = useDialogContext("DialogTrigger");
+  const { requestOpenChange, triggerRef, activeTriggerRef } = useDialogContext("DialogTrigger");
   const composedRef = useComposedRef(triggerRef, ref);
 
   return (
@@ -257,7 +267,10 @@ export function DialogTrigger({ ref, onClick, ...props }: DialogTriggerProps) {
       {...props}
       onClick={(event) => {
         onClick?.(event);
-        if (!event.defaultPrevented) requestOpenChange(true);
+        if (!event.defaultPrevented) {
+          activeTriggerRef.current = event.currentTarget;
+          requestOpenChange(true);
+        }
       }}
       ref={composedRef}
     />
@@ -301,11 +314,19 @@ export function DialogContent({
   onClose,
   onPointerDown,
   onPointerUp,
+  onPointerCancel,
   "aria-describedby": describedBy,
   "aria-labelledby": labelledBy,
   ...dialogProps
 }: DialogContentProps) {
   const context = useDialogContext("DialogContent");
+  // Preserve SSR/hydration markup; client mounts children after the native modal opens.
+  const renderBeforeModal = useSyncExternalStore(
+    subscribeToHydration,
+    () => false,
+    () => true,
+  );
+  const [contentSessionId, setContentSessionId] = useState<number | null>(null);
   const openParentSession = useContext(DialogContentContext);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const composedRef = useComposedRef(dialogRef, ref);
@@ -385,6 +406,7 @@ export function DialogContent({
         focusFirstValid(
           [
             latestRef.current.returnFocusRef?.current,
+            session.trigger,
             latestRef.current.context.triggerRef.current,
             session.opener,
           ],
@@ -415,6 +437,7 @@ export function DialogContent({
         focusFirstValid(
           [
             latestRef.current.returnFocusRef?.current,
+            session.trigger,
             latestRef.current.context.triggerRef.current,
             session.opener,
           ],
@@ -444,6 +467,8 @@ export function DialogContent({
       id: ++nextDialogSessionId,
       dialog,
       opener: getMeaningfulActiveElement(document),
+      trigger: latestRef.current.context.activeTriggerRef.current,
+      nativeInitialFocus: null,
       initialFocusFrame: null,
       cleanupViewport: () => {},
       unlockScroll: () => {},
@@ -457,6 +482,8 @@ export function DialogContent({
       sessionRef.current = null;
       throw error;
     }
+    session.nativeInitialFocus = getActiveElement(document);
+    setContentSessionId(session.id);
 
     getDialogStack(document).push(session);
     session.unlockScroll = lockBackgroundScroll(document);
@@ -476,7 +503,14 @@ export function DialogContent({
       view?.visualViewport?.removeEventListener("resize", updateViewport);
       view?.visualViewport?.removeEventListener("scroll", updateViewport);
     };
+  }, [cancelPendingReturnFocus, openParentSession]);
 
+  useEffect(() => {
+    const session = sessionRef.current;
+    if (!context.open || !session || contentSessionId !== session.id) return;
+    const { dialog } = session;
+    const document = dialog.ownerDocument;
+    const view = document.defaultView;
     const focusInitialTarget = () => {
       session.initialFocusFrame = null;
       if (
@@ -490,8 +524,14 @@ export function DialogContent({
       const autofocusTarget = Array.from(dialog.querySelectorAll<HTMLElement>("[autofocus]")).find(
         (element) => canFocus(element, document, dialog),
       );
+      const mountedFocus = getMeaningfulActiveElement(document, dialog);
       focusFirstValid(
-        [latestRef.current.initialFocusRef?.current, autofocusTarget, titleRef.current],
+        [
+          latestRef.current.initialFocusRef?.current,
+          autofocusTarget,
+          mountedFocus !== session.nativeInitialFocus ? mountedFocus : null,
+          titleRef.current,
+        ],
         document,
         dialog,
       );
@@ -499,7 +539,7 @@ export function DialogContent({
 
     if (view) session.initialFocusFrame = view.requestAnimationFrame(focusInitialTarget);
     else focusInitialTarget();
-  }, [cancelPendingReturnFocus, openParentSession]);
+  }, [contentSessionId, context.open]);
 
   useEffect(() => {
     const mountedState = mountedStateRef.current;
@@ -520,6 +560,7 @@ export function DialogContent({
   useEffect(() => {
     if (context.open) openSession();
     else {
+      setContentSessionId(null);
       const session = sessionRef.current;
       if (session) finalizeSession(session);
     }
@@ -589,8 +630,11 @@ export function DialogContent({
       onPointerDown={(event) => {
         onPointerDown?.(event);
         const targetDialog = getClosestDialog(event.target);
+        if (targetDialog === event.currentTarget) pointerStartedOutsideRef.current = null;
         if (
           targetDialog === event.currentTarget &&
+          event.isPrimary &&
+          event.button === 0 &&
           !event.defaultPrevented &&
           isOutsideSurface(event)
         ) {
@@ -602,12 +646,23 @@ export function DialogContent({
         const targetDialog = getClosestDialog(event.target);
         const shouldClose =
           targetDialog === event.currentTarget &&
+          event.isPrimary &&
+          event.button === 0 &&
           !event.defaultPrevented &&
           context.closeOnInteractOutside &&
           pointerStartedOutsideRef.current === event.pointerId &&
           isOutsideSurface(event);
         pointerStartedOutsideRef.current = null;
         if (shouldClose) context.requestOpenChange(false);
+      }}
+      onPointerCancel={(event) => {
+        onPointerCancel?.(event);
+        if (
+          getClosestDialog(event.target) === event.currentTarget &&
+          pointerStartedOutsideRef.current === event.pointerId
+        ) {
+          pointerStartedOutsideRef.current = null;
+        }
       }}
       ref={composedRef}
     >
@@ -646,7 +701,9 @@ export function DialogContent({
               </IconButton>
             ) : null}
           </header>
-          <DialogContentContext value={openSession}>{children}</DialogContentContext>
+          <DialogContentContext value={openSession}>
+            {contentSessionId !== null || renderBeforeModal ? children : null}
+          </DialogContentContext>
         </div>
       ) : null}
     </dialog>
@@ -683,11 +740,27 @@ export function DialogBody({ className, onScroll, ref, tabIndex, ...props }: Dia
     const MutationObserverConstructor = view?.MutationObserver ?? globalThis.MutationObserver;
     const mutationObserver = !MutationObserverConstructor
       ? null
-      : new MutationObserverConstructor(() => {
+      : new MutationObserverConstructor((records) => {
+          // Automatic tabindex updates must not trigger another measurement cycle.
+          if (
+            records.every(
+              (record) =>
+                record.type === "attributes" &&
+                record.target === body &&
+                record.attributeName === "tabindex",
+            )
+          ) {
+            return;
+          }
           for (const child of body.children) observer?.observe(child);
           update();
         });
-    mutationObserver?.observe(body, { childList: true, characterData: true, subtree: true });
+    mutationObserver?.observe(body, {
+      childList: true,
+      characterData: true,
+      attributes: true,
+      subtree: true,
+    });
     view?.addEventListener("resize", update);
 
     return () => {
