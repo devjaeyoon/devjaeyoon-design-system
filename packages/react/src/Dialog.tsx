@@ -300,7 +300,11 @@ export function DialogContent({
   const pointerStartedOutsideRef = useRef<number | null>(null);
   const sessionRef = useRef<DialogSession | null>(null);
   const internalCloseEventsRef = useRef(0);
-  const cancelStateRef = useRef({ blocked: false, reopen: false });
+  const cancelStateRef = useRef<{
+    blocked: boolean;
+    reopen: boolean;
+    focus: HTMLElement | null;
+  }>({ blocked: false, reopen: false, focus: null });
   const pendingReturnFocusRef = useRef<{
     document: Document;
     frame: number;
@@ -321,7 +325,7 @@ export function DialogContent({
     (session: DialogSession) => {
       if (session.finalized) return;
       session.finalized = true;
-      cancelStateRef.current = { blocked: false, reopen: false };
+      cancelStateRef.current = { blocked: false, reopen: false, focus: null };
 
       const document = session.dialog.ownerDocument;
       const view = document.defaultView;
@@ -412,7 +416,7 @@ export function DialogContent({
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    cancelStateRef.current = { blocked: false, reopen: false };
+    cancelStateRef.current = { blocked: false, reopen: false, focus: null };
     cancelPendingReturnFocus();
     const document = dialog.ownerDocument;
     const view = document.defaultView;
@@ -531,7 +535,11 @@ export function DialogContent({
           event.defaultPrevented ||
           !context.closeOnEscape ||
           (!event.cancelable && cancelStateRef.current.blocked);
-        cancelStateRef.current = { blocked, reopen: blocked && !event.cancelable };
+        cancelStateRef.current = {
+          blocked,
+          reopen: !event.cancelable,
+          focus: getMeaningfulActiveElement(event.currentTarget.ownerDocument, event.currentTarget),
+        };
         event.preventDefault();
         if (!blocked) context.requestOpenChange(false);
       }}
@@ -542,8 +550,16 @@ export function DialogContent({
           internalCloseEventsRef.current -= 1;
           return;
         }
-        const shouldReopen = cancelStateRef.current.reopen;
+        const { reopen: shouldReopen, focus } = cancelStateRef.current;
         const session = sessionRef.current;
+        if (shouldReopen && latestRef.current.context.open && session) {
+          // A non-cancelable Escape may close natively before the owner accepts the request.
+          // Keep the logical session (scroll lock, stack, and opener) until open becomes false.
+          cancelStateRef.current = { blocked: false, reopen: false, focus: null };
+          if (!session.dialog.open) session.dialog.showModal();
+          focusFirstValid([focus, titleRef.current], session.dialog.ownerDocument, session.dialog);
+          return;
+        }
         if (session) finalizeSession(session);
         if (latestRef.current.context.open) {
           if (shouldReopen) openSession();

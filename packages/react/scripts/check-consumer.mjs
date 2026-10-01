@@ -277,6 +277,43 @@ async function checkBrowser(consumerDirectory) {
     await page.getByRole("button", { name: "Close guarded dialog" }).click();
     await cancelPreventedDialog.waitFor({ state: "hidden" });
 
+    const controlledEscapeTrigger = page.getByTestId("controlled-escape-trigger");
+    await controlledEscapeTrigger.click();
+    const controlledEscapeDialog = page.getByRole("dialog", { name: "Controlled Escape dialog" });
+    const controlledDraft = page.getByRole("textbox", { name: "Controlled draft" });
+    await waitForFocus(controlledDraft);
+    await controlledDraft.fill("Unsaved work");
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      await page.keyboard.press("Escape");
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
+      assert.equal(await controlledEscapeDialog.isVisible(), true);
+      assert.equal(
+        await controlledEscapeDialog.evaluate((element) => element.matches(":modal")),
+        true,
+      );
+      assert.equal(
+        await page.getByTestId("controlled-escape-requests").textContent(),
+        String(attempt),
+      );
+      assert.equal(await page.getByTestId("controlled-escape-close-count").textContent(), "0");
+      assert.equal(await controlledDraft.inputValue(), "Unsaved work");
+      await waitForFocus(controlledDraft);
+      assert.equal(
+        await page.locator("html").evaluate((element) => element.style.overflow),
+        "hidden",
+      );
+    }
+    await page.getByRole("button", { name: "Allow Escape close" }).click();
+    await page.keyboard.press("Escape");
+    await controlledEscapeDialog.waitFor({ state: "hidden" });
+    await page.getByTestId("controlled-escape-close-count").filter({ hasText: "1" }).waitFor();
+    assert.equal(await page.getByTestId("controlled-escape-requests").textContent(), "4");
+    assert.equal(await page.getByTestId("controlled-escape-close-count").textContent(), "1");
+    assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
+    await waitForFocus(controlledEscapeTrigger);
+
     await page.getByTestId("custom-focus-trigger").click();
     const customFocusDialog = page.getByRole("dialog", { name: "Custom focus dialog" });
     await customFocusDialog.waitFor({ state: "visible" });

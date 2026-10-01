@@ -188,6 +188,55 @@ function DialogPolicyFixture() {
   );
 }
 
+function ControlledEscapeDialogFixture() {
+  const [open, setOpen] = useState(false);
+  const [closeRequestCount, setCloseRequestCount] = useState(0);
+  const [closeCount, setCloseCount] = useState(0);
+  const acceptCloseRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <section aria-label="Controlled Escape fixture">
+      <span data-testid="controlled-escape-requests">{closeRequestCount}</span>
+      <span data-testid="controlled-escape-close-count">{closeCount}</span>
+      <DialogRoot
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (nextOpen) {
+            acceptCloseRef.current = false;
+            setOpen(true);
+          } else {
+            setCloseRequestCount((count) => count + 1);
+            if (acceptCloseRef.current) setOpen(false);
+          }
+        }}
+      >
+        <DialogTrigger data-testid="controlled-escape-trigger">
+          Open controlled dialog
+        </DialogTrigger>
+        <DialogContent
+          initialFocusRef={inputRef}
+          onCloseAutoFocus={() => setCloseCount((count) => count + 1)}
+          title="Controlled Escape dialog"
+        >
+          <DialogBody>
+            <TextField label="Controlled draft" ref={inputRef} />
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                acceptCloseRef.current = true;
+              }}
+            >
+              Allow Escape close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
+    </section>
+  );
+}
+
 function NativeCloseDialogFixture() {
   const [open, setOpen] = useState(false);
   const [closeRequestCount, setCloseRequestCount] = useState(0);
@@ -327,6 +376,7 @@ function ConsumerApp() {
       <DialogLifecycleFixture />
       <NestedDialogFixture />
       <DialogPolicyFixture />
+      <ControlledEscapeDialogFixture />
       <NativeCloseDialogFixture />
       <OpenerReturnDialogFixture />
       <ExplicitReturnDialogFixture />

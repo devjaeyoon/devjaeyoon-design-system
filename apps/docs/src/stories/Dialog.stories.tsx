@@ -114,6 +114,82 @@ export const Form: Story = {
   },
 };
 
+function ControlledEscapeDialog() {
+  const [open, setOpen] = useState(false);
+  const [closeRequests, setCloseRequests] = useState(0);
+  const [closeCount, setCloseCount] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <>
+      <span data-testid="controlled-close-requests">{closeRequests}</span>
+      <span data-testid="controlled-close-count">{closeCount}</span>
+      <DialogRoot
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (nextOpen) setOpen(true);
+          else setCloseRequests((count) => count + 1);
+        }}
+      >
+        <DialogTrigger>작업 Dialog 열기</DialogTrigger>
+        <DialogContent
+          initialFocusRef={inputRef}
+          onCloseAutoFocus={() => setCloseCount((count) => count + 1)}
+          title="작업 완료까지 유지"
+        >
+          <DialogBody>
+            <TextField label="작업 내용" ref={inputRef} />
+          </DialogBody>
+          <DialogFooter>
+            <Button onClick={() => setOpen(false)}>작업 완료</Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
+    </>
+  );
+}
+
+export const ControlledEscape: Story = {
+  render: () => <ControlledEscapeDialog />,
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("button", { name: "작업 Dialog 열기" });
+    await userEvent.click(trigger);
+    const dialog = canvas.getByRole("dialog", { name: "작업 완료까지 유지" });
+    const input = canvas.getByRole("textbox", { name: "작업 내용" });
+    await waitFor(() => expect(input).toHaveFocus());
+    await userEvent.type(input, "진행 중인 작업");
+
+    await step("부모가 닫기 요청을 수락하지 않으면 열린 상태를 유지한다", async () => {
+      fireNativeCancel(dialog);
+      await expect(canvas.getByTestId("controlled-close-requests")).toHaveTextContent("1");
+      await expect(dialog).toHaveAttribute("open");
+    });
+
+    await step("취소할 수 없는 native 닫기에서도 세션과 입력 포커스를 유지한다", async () => {
+      const EventConstructor = dialog.ownerDocument.defaultView?.Event ?? Event;
+      fireEvent(dialog, new EventConstructor("cancel", { cancelable: false }));
+      // Simulate the browser's unavoidable default action after a non-cancelable cancel.
+      if (!(dialog instanceof HTMLDialogElement)) throw new Error("Expected a native dialog.");
+      dialog.close();
+      await waitFor(() => expect(dialog).toHaveAttribute("open"));
+      await expect(dialog.matches(":modal")).toBe(true);
+      await expect(canvas.getByTestId("controlled-close-requests")).toHaveTextContent("2");
+      await expect(canvas.getByTestId("controlled-close-count")).toHaveTextContent("0");
+      await expect(dialog.ownerDocument.documentElement.style.overflow).toBe("hidden");
+      await expect(input).toHaveValue("진행 중인 작업");
+      await expect(input).toHaveFocus();
+    });
+
+    await step("부모가 open을 false로 변경하면 한 번 닫고 포커스를 복귀한다", async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "작업 완료" }));
+      await waitFor(() => expect(dialog).not.toHaveAttribute("open"));
+      await expect(canvas.getByTestId("controlled-close-count")).toHaveTextContent("1");
+      await waitFor(() => expect(trigger).toHaveFocus());
+    });
+  },
+};
+
 export const Scrollable: Story = {
   render: () => (
     <DialogRoot defaultOpen>

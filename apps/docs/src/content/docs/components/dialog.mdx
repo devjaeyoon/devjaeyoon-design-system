@@ -39,6 +39,8 @@ import {
 
 `DialogRoot`는 `defaultOpen`을 사용하는 uncontrolled 방식과 `open`·`onOpenChange`를 사용하는
 controlled 방식을 지원합니다. 비동기 저장은 controlled 상태로 관리하고 성공했을 때만 닫습니다.
+controlled 방식에서 Escape 닫기 요청 이후에도 `open=true`를 유지하면 모달과 입력 포커스가
+유지되며, 이 과정에서는 `onCloseAutoFocus`를 호출하지 않습니다.
 
 바깥 영역 클릭은 기본적으로 닫히지 않습니다. 가벼운 조회 화면에서만
 `closeOnInteractOutside`를 사용합니다. Escape는 기본적으로 닫히며 `closeOnEscape={false}`로
