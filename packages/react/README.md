@@ -54,6 +54,8 @@ import { TextField } from "@devjaeyoon-design-system/react";
 
 `Dialog`는 native `<dialog>` 위에 제목, 스크롤 본문과 고정 Footer를 구성한다. 바깥 영역 클릭은
 기본적으로 닫히지 않으며 Escape와 명시적인 닫기 버튼을 지원한다.
+열림 상태와 닫기 정책은 `DialogRoot`에서 제어한다. `DialogContent`의 native `open`·`closedby`는
+내부에서 관리하며, Escape와 바깥 영역 클릭은 Root의 옵션을 따른다.
 
 ```tsx
 import {
@@ -80,6 +82,8 @@ import {
 
 `DialogContent`는 `medium`(480px)과 `large`(800px)를 지원한다. Portal을 사용하는 Select나
 Popover는 Portal container를 `DialogContent` ref가 가리키는 실제 dialog 요소로 지정한다.
+본문 스크롤과 고정 Footer를 유지하려면 `DialogBody`와 `DialogFooter`를 별도 DOM 요소로 함께
+감싸지 않는다. 폼은 `DialogBody` 안에 두고 Footer의 제출 버튼을 `form` 속성으로 연결한다.
 열려 있는 Content가 제거되어도 닫기 callback과 포커스 복귀를 한 번 수행하며, StrictMode의
 개발용 effect 재실행은 닫기로 처리하지 않는다. 중첩 Dialog의 초기·복귀 포커스는 현재 맨 위
 Dialog를 기준으로 관리한다.
