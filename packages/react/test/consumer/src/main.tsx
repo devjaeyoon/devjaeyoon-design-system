@@ -28,6 +28,7 @@ import {
   useState,
 } from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
+import { DialogBoundaryFixtures } from "./DialogBoundaryFixtures";
 
 type Theme = "light" | "dark";
 
@@ -628,6 +629,7 @@ function ConsumerApp() {
       <DialogRefFixture />
       <DialogInteractionFixture />
       <DialogSuspenseFixture />
+      <DialogBoundaryFixtures />
       <Button
         onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
         type="button"

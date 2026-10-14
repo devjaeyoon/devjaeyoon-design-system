@@ -7,6 +7,7 @@ import { isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, firefox, webkit } from "playwright";
 import { preview } from "vite";
+import { checkDialogBoundaries } from "./check-dialog-boundaries.mjs";
 
 const packageDirectory = resolve(fileURLToPath(new URL("../", import.meta.url)));
 const cssPackageDirectory = resolve(packageDirectory, "../css");
@@ -419,6 +420,8 @@ async function checkBrowser(consumerDirectory) {
     assert.equal(await suspenseNativeCloseCount.textContent(), "1");
     assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
     assert.equal(await page.locator("body").evaluate((element) => element.style.overflow), "");
+
+    await checkDialogBoundaries(page, waitForFocus);
 
     const nativeCloseTrigger = page.getByTestId("native-close-trigger");
     await nativeCloseTrigger.click();

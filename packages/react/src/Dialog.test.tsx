@@ -19,6 +19,7 @@ describe("Dialog", () => {
       ComponentPropsWithRef<"dialog">["ref"]
     >();
     expectTypeOf<DialogSize>().toEqualTypeOf<"medium" | "large">();
+    expectTypeOf<"closedby">().not.toExtend<keyof DialogContentProps>();
   });
 
   it("renders an inert shell while closed during SSR", () => {
@@ -32,11 +33,30 @@ describe("Dialog", () => {
     );
 
     expect(markup).toContain("열기");
-    expect(markup).toContain('<dialog class="djy-dialog djy-dialog--medium"></dialog>');
+    expect(markup).toContain(
+      '<dialog closedby="closerequest" class="djy-dialog djy-dialog--medium"></dialog>',
+    );
     expect(markup).not.toContain("프로필 수정");
     expect(markup).not.toContain("내용");
     expect(markup).not.toContain(" open");
   });
+
+  it.each(["any", "none"] as const)(
+    "owns closedby even when %s is spread at runtime",
+    (closedby) => {
+      const nativeProps: Pick<ComponentPropsWithRef<"dialog">, "closedby"> = { closedby };
+      const markup = renderToStaticMarkup(
+        <DialogRoot defaultOpen>
+          <DialogContent {...nativeProps} title="Root 닫기 정책">
+            <DialogBody>내용</DialogBody>
+          </DialogContent>
+        </DialogRoot>,
+      );
+
+      expect(markup).toContain('closedby="closerequest"');
+      expect(markup).not.toContain(`closedby="${closedby}"`);
+    },
+  );
 
   it("connects the title and description and renders composed regions when initially open", () => {
     const markup = renderToStaticMarkup(

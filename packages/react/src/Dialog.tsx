@@ -8,7 +8,6 @@ import {
   type RefObject,
   useCallback,
   useContext,
-  useEffect,
   useId,
   useLayoutEffect,
   useMemo,
@@ -18,6 +17,8 @@ import {
 } from "react";
 import { Button, type ButtonProps } from "./Button.js";
 import { IconButton } from "./IconButton.js";
+import { useDialogBodyScroll } from "./useDialogBodyScroll.js";
+import { useDialogLifecycle } from "./useDialogLifecycle.js";
 
 export type DialogSize = "medium" | "large";
 
@@ -35,12 +36,12 @@ type DialogContextValue = {
   closeOnInteractOutside: boolean;
   closeOnEscape: boolean;
   requestOpenChange: (open: boolean) => void;
-  triggerRef: RefObject<HTMLButtonElement | null>;
-  activeTriggerRef: RefObject<HTMLButtonElement | null>;
+  triggerRefs: RefObject<Set<HTMLButtonElement>>;
+  pendingOpeningTriggerRef: RefObject<HTMLButtonElement | null>;
 };
 
 const DialogContext = createContext<DialogContextValue | null>(null);
-const DialogContentContext = createContext<(() => void) | null>(null);
+const DialogContentContext = createContext<(() => boolean) | null>(null);
 
 function subscribeToHydration() {
   return () => {};
@@ -72,20 +73,6 @@ function useComposedRef<T>(internalRef: RefObject<T | null>, ref: Ref<T> | undef
   );
 }
 
-type DialogSession = {
-  id: number;
-  dialog: HTMLDialogElement;
-  opener: HTMLElement | null;
-  trigger: HTMLButtonElement | null;
-  nativeInitialFocus: HTMLElement | null;
-  initialFocusFrame: number | null;
-  cleanupViewport: () => void;
-  unlockScroll: () => void;
-  suspended: boolean;
-  suspendedFocus: HTMLElement | null;
-  finalized: boolean;
-};
-
 function DialogVisibility({
   onShow,
   onHide,
@@ -101,6 +88,7 @@ function DialogVisibility({
       // Capture focus while the content is still visible.
       const suspend = onHide();
       // StrictMode reconnects immediately; Suspense leaves layout effects disconnected.
+      // Only the generation that is still hidden may suspend the native modal.
       queueMicrotask(() => {
         if (generationRef.current === generation) suspend?.();
       });
@@ -109,152 +97,9 @@ function DialogVisibility({
   return null;
 }
 
-type ScrollLockState = {
-  count: number;
-  documentOverflow: string;
-  bodyOverflow: string;
-};
-
-const dialogStacks = new WeakMap<Document, DialogSession[]>();
-const scrollLocks = new WeakMap<Document, ScrollLockState>();
-let nextDialogSessionId = 0;
-
-function getActiveElement(document: Document): HTMLElement | null {
-  const element = document.activeElement;
-  return element && "focus" in element ? (element as HTMLElement) : null;
-}
-
-function canFocus(
-  element: HTMLElement | null | undefined,
-  document: Document,
-  scope?: HTMLElement,
-): element is HTMLElement {
-  if (
-    !element?.isConnected ||
-    element.ownerDocument !== document ||
-    (scope && !scope.contains(element)) ||
-    element.matches(":disabled") ||
-    element.hasAttribute("disabled")
-  ) {
-    return false;
-  }
-
-  const view = document.defaultView;
-  for (let current: HTMLElement | null = element; current; current = current.parentElement) {
-    if (
-      current.hidden ||
-      current.hasAttribute("inert") ||
-      current.getAttribute("aria-hidden") === "true"
-    ) {
-      return false;
-    }
-    if (view) {
-      const style = view.getComputedStyle(current);
-      if (
-        style.display === "none" ||
-        style.visibility === "hidden" ||
-        style.visibility === "collapse"
-      ) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-function focusFirstValid(
-  candidates: Array<HTMLElement | null | undefined>,
-  document: Document,
-  scope?: HTMLElement,
-) {
-  for (const candidate of candidates) {
-    if (!canFocus(candidate, document, scope)) continue;
-    candidate.focus({ preventScroll: true });
-    if (document.activeElement === candidate) return true;
-  }
-  return false;
-}
-
-function getMeaningfulActiveElement(document: Document, scope?: HTMLElement) {
-  const activeElement = getActiveElement(document);
-  if (
-    activeElement === document.body ||
-    activeElement === document.documentElement ||
-    !canFocus(activeElement, document, scope)
-  ) {
-    return null;
-  }
-  return activeElement;
-}
-
 function getClosestDialog(target: EventTarget | null) {
   if (!target || !("closest" in target) || typeof target.closest !== "function") return null;
   return target.closest("dialog");
-}
-
-function getDialogStack(document: Document) {
-  let stack = dialogStacks.get(document);
-  if (!stack) {
-    stack = [];
-    dialogStacks.set(document, stack);
-  }
-  return stack;
-}
-
-function removeDialogSession(session: DialogSession) {
-  const document = session.dialog.ownerDocument;
-  const stack = dialogStacks.get(document);
-  if (!stack) return;
-  const index = stack.indexOf(session);
-  if (index >= 0) stack.splice(index, 1);
-  if (stack.length === 0) dialogStacks.delete(document);
-}
-
-function getTopDialogSession(document: Document) {
-  const stack = dialogStacks.get(document);
-  return stack?.[stack.length - 1] ?? null;
-}
-
-function deactivateDialogSession(session: DialogSession) {
-  if (session.initialFocusFrame !== null) {
-    session.dialog.ownerDocument.defaultView?.cancelAnimationFrame(session.initialFocusFrame);
-    session.initialFocusFrame = null;
-  }
-  session.cleanupViewport();
-  session.cleanupViewport = () => {};
-  session.unlockScroll();
-  session.unlockScroll = () => {};
-  removeDialogSession(session);
-}
-
-function lockBackgroundScroll(document: Document) {
-  let state = scrollLocks.get(document);
-  if (!state) {
-    state = {
-      count: 0,
-      documentOverflow: document.documentElement.style.overflow,
-      bodyOverflow: document.body.style.overflow,
-    };
-    scrollLocks.set(document, state);
-  }
-  if (state.count === 0) {
-    state.documentOverflow = document.documentElement.style.overflow;
-    state.bodyOverflow = document.body.style.overflow;
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-  }
-  state.count += 1;
-
-  return () => {
-    const current = scrollLocks.get(document);
-    if (!current) return;
-    current.count = Math.max(0, current.count - 1);
-    if (current.count === 0) {
-      document.documentElement.style.overflow = current.documentOverflow;
-      document.body.style.overflow = current.bodyOverflow;
-      scrollLocks.delete(document);
-    }
-  };
 }
 
 export function DialogRoot({
@@ -267,8 +112,8 @@ export function DialogRoot({
 }: DialogRootProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
   const open = controlledOpen ?? uncontrolledOpen;
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const activeTriggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRefs = useRef(new Set<HTMLButtonElement>());
+  const pendingOpeningTriggerRef = useRef<HTMLButtonElement>(null);
 
   const requestOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -285,8 +130,8 @@ export function DialogRoot({
       closeOnInteractOutside,
       closeOnEscape,
       requestOpenChange,
-      triggerRef,
-      activeTriggerRef,
+      triggerRefs,
+      pendingOpeningTriggerRef,
     }),
     [closeOnEscape, closeOnInteractOutside, open, requestOpenChange],
   );
@@ -297,16 +142,28 @@ export function DialogRoot({
 export type DialogTriggerProps = ButtonProps;
 
 export function DialogTrigger({ ref, onClick, ...props }: DialogTriggerProps) {
-  const { requestOpenChange, triggerRef, activeTriggerRef } = useDialogContext("DialogTrigger");
-  const composedRef = useComposedRef(triggerRef, ref);
+  const { open, requestOpenChange, triggerRefs, pendingOpeningTriggerRef } =
+    useDialogContext("DialogTrigger");
+  const composedRef = useCallback(
+    (element: HTMLButtonElement | null) => {
+      if (element) triggerRefs.current.add(element);
+      const cleanup = setRef(ref, element);
+      return () => {
+        if (element) triggerRefs.current.delete(element);
+        if (typeof cleanup === "function") cleanup();
+        else setRef(ref, null);
+      };
+    },
+    [triggerRefs, ref],
+  );
 
   return (
     <Button
       {...props}
       onClick={(event) => {
         onClick?.(event);
-        if (!event.defaultPrevented) {
-          activeTriggerRef.current = event.currentTarget;
+        if (!event.defaultPrevented && !open) {
+          pendingOpeningTriggerRef.current = event.currentTarget;
           requestOpenChange(true);
         }
       }}
@@ -319,7 +176,14 @@ export type DialogCloseAutoFocusEvent = Event;
 
 export type DialogContentProps = Omit<
   ComponentPropsWithRef<"dialog">,
-  "aria-describedby" | "aria-labelledby" | "children" | "onCancel" | "onClose" | "open" | "title"
+  | "aria-describedby"
+  | "aria-labelledby"
+  | "children"
+  | "closedby"
+  | "onCancel"
+  | "onClose"
+  | "open"
+  | "title"
 > & {
   children: ReactNode;
   title: string;
@@ -350,6 +214,8 @@ export function DialogContent({
   ref,
   onCancel,
   onClose,
+  onFocusCapture,
+  onKeyDown,
   onPointerDown,
   onPointerUp,
   onPointerCancel,
@@ -364,274 +230,43 @@ export function DialogContent({
     () => false,
     () => true,
   );
-  const [contentSessionId, setContentSessionId] = useState<number | null>(null);
   const openParentSession = useContext(DialogContentContext);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const composedRef = useComposedRef(dialogRef, ref);
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
   const descriptionId = useId();
   const pointerStartedOutsideRef = useRef<number | null>(null);
-  const sessionRef = useRef<DialogSession | null>(null);
-  const internalCloseEventsRef = useRef<Array<"finalize" | "suspend">>([]);
-  const cancelStateRef = useRef<{
-    blocked: boolean;
-    reopen: boolean;
-    focus: HTMLElement | null;
-  }>({ blocked: false, reopen: false, focus: null });
-  const pendingReturnFocusRef = useRef<{
-    document: Document;
-    frame: number;
-    sessionId: number;
-  } | null>(null);
-  const mountedStateRef = useRef({ generation: 0, mounted: false });
-  const latestRef = useRef({ context, initialFocusRef, returnFocusRef, onCloseAutoFocus });
-  latestRef.current = { context, initialFocusRef, returnFocusRef, onCloseAutoFocus };
-
-  const cancelPendingReturnFocus = useCallback(() => {
-    const pending = pendingReturnFocusRef.current;
-    if (!pending) return;
-    pending.document.defaultView?.cancelAnimationFrame(pending.frame);
-    pendingReturnFocusRef.current = null;
+  const onSuspend = useCallback(() => {
+    pointerStartedOutsideRef.current = null;
   }, []);
-
-  const finalizeSession = useCallback(
-    (session: DialogSession) => {
-      if (session.finalized) return;
-      session.finalized = true;
-      cancelStateRef.current = { blocked: false, reopen: false, focus: null };
-
-      const document = session.dialog.ownerDocument;
-      const view = document.defaultView;
-      deactivateDialogSession(session);
-      if (sessionRef.current === session) sessionRef.current = null;
-
-      if (session.dialog.open) {
-        internalCloseEventsRef.current.push("finalize");
-        session.dialog.close();
-      }
-
-      const focusAfterNativeClose = getActiveElement(document);
-      const EventConstructor = view?.Event ?? Event;
-      const closeAutoFocusEvent = new EventConstructor("djy.dialog.closeAutoFocus", {
-        cancelable: true,
-      });
-      latestRef.current.onCloseAutoFocus?.(closeAutoFocusEvent);
-      if (closeAutoFocusEvent.defaultPrevented) return;
-
-      const focusAfterCallback = getActiveElement(document);
-      if (
-        focusAfterCallback !== focusAfterNativeClose &&
-        getMeaningfulActiveElement(document) === focusAfterCallback
-      ) {
-        return;
-      }
-
-      const remainingSession = getTopDialogSession(document);
-      const expectedTopSessionId = remainingSession?.id ?? null;
-      const focusBeforeRestore = focusAfterCallback;
-
-      if (!view) {
-        focusFirstValid(
-          [
-            latestRef.current.returnFocusRef?.current,
-            session.trigger,
-            latestRef.current.context.triggerRef.current,
-            session.opener,
-          ],
-          document,
-          remainingSession?.dialog,
-        );
-        return;
-      }
-
-      cancelPendingReturnFocus();
-      const frame = view.requestAnimationFrame(() => {
-        const pending = pendingReturnFocusRef.current;
-        if (!pending || pending.sessionId !== session.id) return;
-        pendingReturnFocusRef.current = null;
-
-        if (sessionRef.current && !sessionRef.current.finalized) return;
-        const currentTopSession = getTopDialogSession(document);
-        if ((currentTopSession?.id ?? null) !== expectedTopSessionId) return;
-
-        const currentFocus = getActiveElement(document);
-        if (
-          currentFocus !== focusBeforeRestore &&
-          getMeaningfulActiveElement(document) === currentFocus
-        ) {
-          return;
-        }
-
-        focusFirstValid(
-          [
-            latestRef.current.returnFocusRef?.current,
-            session.trigger,
-            latestRef.current.context.triggerRef.current,
-            session.opener,
-          ],
-          document,
-          currentTopSession?.dialog,
-        );
-      });
-      pendingReturnFocusRef.current = { document, frame, sessionId: session.id };
-    },
-    [cancelPendingReturnFocus],
-  );
-
-  const openSession = useCallback(() => {
-    if (!latestRef.current.context.open) return;
-    const previousSession = sessionRef.current;
-    if (previousSession && !previousSession.finalized && !previousSession.suspended) return;
-    // On Suspense reveal, the visibility sibling runs before host refs reconnect.
-    const dialog = dialogRef.current ?? previousSession?.dialog;
-    if (!dialog) return;
-
-    // Child effects run first, so open ancestors before adding this dialog to the top layer.
-    openParentSession?.();
-
-    cancelStateRef.current = { blocked: false, reopen: false, focus: null };
-    cancelPendingReturnFocus();
-    const document = dialog.ownerDocument;
-    const view = document.defaultView;
-    const session: DialogSession = previousSession ?? {
-      id: ++nextDialogSessionId,
-      dialog,
-      opener: getMeaningfulActiveElement(document),
-      trigger: latestRef.current.context.activeTriggerRef.current,
-      nativeInitialFocus: null,
-      initialFocusFrame: null,
-      cleanupViewport: () => {},
-      unlockScroll: () => {},
-      suspended: false,
-      suspendedFocus: null,
-      finalized: false,
-    };
-    sessionRef.current = session;
-
-    try {
-      if (!dialog.open) dialog.showModal();
-    } catch (error) {
-      sessionRef.current = null;
-      throw error;
-    }
-    session.suspended = false;
-    session.nativeInitialFocus = getActiveElement(document);
-    setContentSessionId(session.id);
-
-    getDialogStack(document).push(session);
-    session.unlockScroll = lockBackgroundScroll(document);
-
-    const updateViewport = () => {
-      const viewport = view?.visualViewport;
-      dialog.style.setProperty(
-        "--djy-dialog-viewport-height",
-        `${viewport?.height ?? view?.innerHeight ?? 0}px`,
-      );
-      dialog.style.setProperty("--djy-dialog-viewport-offset", `${viewport?.offsetTop ?? 0}px`);
-    };
-    updateViewport();
-    view?.visualViewport?.addEventListener("resize", updateViewport);
-    view?.visualViewport?.addEventListener("scroll", updateViewport);
-    session.cleanupViewport = () => {
-      view?.visualViewport?.removeEventListener("resize", updateViewport);
-      view?.visualViewport?.removeEventListener("scroll", updateViewport);
-    };
-  }, [cancelPendingReturnFocus, openParentSession]);
-
-  const suspendSession = useCallback(() => {
-    const session = sessionRef.current;
-    if (!session || session.finalized || session.suspended) return;
-    const focus = getMeaningfulActiveElement(session.dialog.ownerDocument, session.dialog);
-    return () => {
-      if (session.finalized || session.suspended) return;
-      session.suspended = true;
-      session.suspendedFocus = focus;
-      pointerStartedOutsideRef.current = null;
-      deactivateDialogSession(session);
-      if (session.dialog.open) {
-        internalCloseEventsRef.current.push("suspend");
-        session.dialog.close();
-      }
-    };
-  }, []);
-
-  const resumeSession = useCallback(() => {
-    const session = sessionRef.current;
-    if (!session?.suspended) return;
-    openSession();
-    if (session.suspended || session.finalized) return;
-    focusFirstValid(
-      [session.suspendedFocus, session.dialog.querySelector<HTMLElement>(".djy-dialog__title")],
-      session.dialog.ownerDocument,
-      session.dialog,
-    );
-    session.suspendedFocus = null;
-  }, [openSession]);
-
-  useEffect(() => {
-    const session = sessionRef.current;
-    if (!context.open || !session || contentSessionId !== session.id) return;
-    const { dialog } = session;
-    const document = dialog.ownerDocument;
-    const view = document.defaultView;
-    const focusInitialTarget = () => {
-      session.initialFocusFrame = null;
-      if (
-        session.finalized ||
-        sessionRef.current !== session ||
-        !dialog.open ||
-        getTopDialogSession(document)?.id !== session.id
-      ) {
-        return;
-      }
-      const autofocusTarget = Array.from(dialog.querySelectorAll<HTMLElement>("[autofocus]")).find(
-        (element) => canFocus(element, document, dialog),
-      );
-      const mountedFocus = getMeaningfulActiveElement(document, dialog);
-      focusFirstValid(
-        [
-          latestRef.current.initialFocusRef?.current,
-          autofocusTarget,
-          mountedFocus !== session.nativeInitialFocus ? mountedFocus : null,
-          titleRef.current,
-        ],
-        document,
-        dialog,
-      );
-    };
-
-    if (view) session.initialFocusFrame = view.requestAnimationFrame(focusInitialTarget);
-    else focusInitialTarget();
-  }, [contentSessionId, context.open]);
-
-  useEffect(() => {
-    const mountedState = mountedStateRef.current;
-    mountedState.mounted = true;
-    mountedState.generation += 1;
-
-    return () => {
-      mountedState.mounted = false;
-      const cleanupGeneration = ++mountedState.generation;
-      queueMicrotask(() => {
-        if (mountedState.mounted || mountedState.generation !== cleanupGeneration) return;
-        const session = sessionRef.current;
-        if (session) finalizeSession(session);
-      });
-    };
-  }, [finalizeSession]);
-
-  useEffect(() => {
-    if (context.open) openSession();
-    else {
-      setContentSessionId(null);
-      const session = sessionRef.current;
-      if (session) finalizeSession(session);
-    }
-  }, [context.open, finalizeSession, openSession]);
+  const {
+    dialogRef,
+    titleRef,
+    contentSessionId,
+    openSession,
+    suspendSession,
+    resumeSession,
+    handleFocusCapture,
+    handleKeyDown,
+    handleCancel,
+    handleClose,
+  } = useDialogLifecycle({
+    context,
+    openParentSession,
+    initialFocusRef,
+    returnFocusRef,
+    onCloseAutoFocus,
+    onCancel,
+    onClose,
+    onFocusCapture,
+    onKeyDown,
+    onSuspend,
+  });
+  const composedRef = useComposedRef(dialogRef, ref);
 
   const isOutsideSurface = (event: ReactPointerEvent<HTMLDialogElement>) => {
+    // Native backdrop events target the dialog itself. Portaled descendants remain content,
+    // even when their bounds extend beyond the surface.
+    if (event.target !== event.currentTarget) return false;
     const surface = surfaceRef.current;
     if (!surface) return false;
     const bounds = surface.getBoundingClientRect();
@@ -648,49 +283,18 @@ export function DialogContent({
   return (
     <dialog
       {...dialogProps}
+      // Root owns dismissal; native light dismiss must not duplicate outside requests.
+      closedby="closerequest"
       aria-describedby={
         context.open ? (describedBy ?? (description ? descriptionId : undefined)) : undefined
       }
       aria-labelledby={context.open ? (labelledBy ?? titleId) : undefined}
       aria-modal={context.open ? "true" : undefined}
       className={classes}
-      onCancel={(event) => {
-        if (event.target !== event.currentTarget) return;
-        onCancel?.(event);
-        const blocked =
-          event.defaultPrevented ||
-          !context.closeOnEscape ||
-          (!event.cancelable && cancelStateRef.current.blocked);
-        cancelStateRef.current = {
-          blocked,
-          reopen: !event.cancelable,
-          focus: getMeaningfulActiveElement(event.currentTarget.ownerDocument, event.currentTarget),
-        };
-        event.preventDefault();
-        if (!blocked) context.requestOpenChange(false);
-      }}
-      onClose={(event) => {
-        if (event.target !== event.currentTarget) return;
-        const internalClose = internalCloseEventsRef.current.shift();
-        if (internalClose === "suspend") return;
-        onClose?.(event);
-        if (internalClose) return;
-        const { reopen: shouldReopen, focus } = cancelStateRef.current;
-        const session = sessionRef.current;
-        if (shouldReopen && latestRef.current.context.open && session) {
-          // A non-cancelable Escape may close natively before the owner accepts the request.
-          // Keep the logical session (scroll lock, stack, and opener) until open becomes false.
-          cancelStateRef.current = { blocked: false, reopen: false, focus: null };
-          if (!session.dialog.open) session.dialog.showModal();
-          focusFirstValid([focus, titleRef.current], session.dialog.ownerDocument, session.dialog);
-          return;
-        }
-        if (session) finalizeSession(session);
-        if (latestRef.current.context.open) {
-          if (shouldReopen) openSession();
-          else latestRef.current.context.requestOpenChange(false);
-        }
-      }}
+      onFocusCapture={handleFocusCapture}
+      onKeyDown={handleKeyDown}
+      onCancel={handleCancel}
+      onClose={handleClose}
       onPointerDown={(event) => {
         onPointerDown?.(event);
         const targetDialog = getClosestDialog(event.target);
@@ -782,61 +386,7 @@ export function DialogBody({ className, onScroll, ref, tabIndex, ...props }: Dia
   const bodyRef = useRef<HTMLDivElement>(null);
   const composedRef = useComposedRef(bodyRef, ref);
 
-  useEffect(() => {
-    const body = bodyRef.current;
-    const dialog = body?.closest<HTMLDialogElement>(".djy-dialog");
-    if (!body || !dialog) return;
-    const view = body.ownerDocument.defaultView;
-
-    const update = () => {
-      dialog.dataset.scrolledStart = String(body.scrollTop > 1);
-      dialog.dataset.overflowEnd = String(
-        body.scrollHeight - body.clientHeight - body.scrollTop > 1,
-      );
-      if (tabIndex === undefined) {
-        if (body.scrollHeight > body.clientHeight + 1) body.tabIndex = 0;
-        else body.removeAttribute("tabindex");
-      }
-    };
-    update();
-    const ResizeObserverConstructor = view?.ResizeObserver ?? globalThis.ResizeObserver;
-    const observer = ResizeObserverConstructor ? new ResizeObserverConstructor(update) : null;
-    observer?.observe(body);
-    for (const child of body.children) observer?.observe(child);
-    const MutationObserverConstructor = view?.MutationObserver ?? globalThis.MutationObserver;
-    const mutationObserver = !MutationObserverConstructor
-      ? null
-      : new MutationObserverConstructor((records) => {
-          // Automatic tabindex updates must not trigger another measurement cycle.
-          if (
-            records.every(
-              (record) =>
-                record.type === "attributes" &&
-                record.target === body &&
-                record.attributeName === "tabindex",
-            )
-          ) {
-            return;
-          }
-          for (const child of body.children) observer?.observe(child);
-          update();
-        });
-    mutationObserver?.observe(body, {
-      childList: true,
-      characterData: true,
-      attributes: true,
-      subtree: true,
-    });
-    view?.addEventListener("resize", update);
-
-    return () => {
-      observer?.disconnect();
-      mutationObserver?.disconnect();
-      view?.removeEventListener("resize", update);
-      delete dialog.dataset.scrolledStart;
-      delete dialog.dataset.overflowEnd;
-    };
-  }, [tabIndex]);
+  const handleScroll = useDialogBodyScroll(bodyRef, tabIndex);
 
   return (
     <div className="djy-dialog__body-shell">
@@ -844,14 +394,7 @@ export function DialogBody({ className, onScroll, ref, tabIndex, ...props }: Dia
         {...props}
         className={["djy-dialog__body", className].filter(Boolean).join(" ")}
         onScroll={(event) => {
-          const body = event.currentTarget;
-          const dialog = body.closest<HTMLDialogElement>(".djy-dialog");
-          if (dialog) {
-            dialog.dataset.scrolledStart = String(body.scrollTop > 1);
-            dialog.dataset.overflowEnd = String(
-              body.scrollHeight - body.clientHeight - body.scrollTop > 1,
-            );
-          }
+          handleScroll(event);
           onScroll?.(event);
         }}
         tabIndex={tabIndex}

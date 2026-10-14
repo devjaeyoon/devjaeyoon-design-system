@@ -109,7 +109,8 @@
   .djy-dialog__body-shell {
     position: relative;
     display: flex;
-    min-height: 0;
+    /* Keep the body reachable; the surface scrolls when the header/footer need more space. */
+    min-height: 4rem;
     flex: 1 1 auto;
     overflow: hidden;
   }
@@ -272,6 +273,10 @@
       color var(--djy-motion-duration-feedback) var(--djy-motion-easing-feedback),
       background-color var(--djy-motion-duration-feedback) var(--djy-motion-easing-feedback),
       border-color var(--djy-motion-duration-feedback) var(--djy-motion-easing-feedback);
+  }
+
+  .djy-button[hidden]:not([hidden="until-found"]) {
+    display: none;
   }
 
   .djy-button__label {

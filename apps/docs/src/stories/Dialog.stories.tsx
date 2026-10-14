@@ -9,7 +9,7 @@ import {
   TextField,
 } from "@devjaeyoon-design-system/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { act, StrictMode, Suspense, use, useRef, useState } from "react";
+import { act, StrictMode, Suspense, use, useId, useRef, useState } from "react";
 import { expect, fireEvent, fn, userEvent, waitFor, within } from "storybook/test";
 
 const meta = {
@@ -444,10 +444,11 @@ export const OutsidePointer: Story = {
   },
 };
 
-function FormDialog() {
+function FormDialog({ long = false }: { long?: boolean }) {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [savedName, setSavedName] = useState("");
+  const formId = useId();
   return (
     <>
       <DialogRoot open={open} onOpenChange={setOpen}>
@@ -460,7 +461,7 @@ function FormDialog() {
         >
           <DialogBody>
             <form
-              id="template-form"
+              id={formId}
               onSubmit={(event) => {
                 event.preventDefault();
                 const data = new FormData(event.currentTarget);
@@ -469,11 +470,16 @@ function FormDialog() {
               }}
             >
               <TextField label="템플릿 이름" name="name" ref={inputRef} required />
+              {long
+                ? Array.from({ length: 40 }, (_, index) => (
+                    <p key={index}>저장 전 안내 사항 {index + 1}</p>
+                  ))
+                : null}
             </form>
           </DialogBody>
           <DialogFooter>
             <DialogClose>취소</DialogClose>
-            <Button form="template-form" type="submit">
+            <Button form={formId} type="submit">
               저장
             </Button>
           </DialogFooter>
@@ -494,6 +500,31 @@ export const Form: Story = {
     await userEvent.type(input, "하체 루틴");
     await userEvent.click(canvas.getByRole("button", { name: "저장" }));
     await expect(canvas.getByText("하체 루틴 저장 완료")).toBeInTheDocument();
+  },
+};
+
+export const ScrollableForm: Story = {
+  render: () => <FormDialog long />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "템플릿 저장" }));
+    const dialog = canvas.getByRole("dialog", { name: "템플릿으로 저장" });
+    const body = dialog.querySelector<HTMLElement>(".djy-dialog__body");
+    const surface = dialog.querySelector<HTMLElement>(".djy-dialog__surface");
+    const footer = dialog.querySelector<HTMLElement>(".djy-dialog__footer");
+    if (!body || !surface || !footer) throw new Error("Dialog 구성 요소가 없습니다.");
+    await waitFor(() => expect(dialog).toHaveAttribute("data-overflow-end", "true"));
+    await expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
+    await expect(surface.scrollHeight).toBeLessThanOrEqual(surface.clientHeight + 1);
+    const footerTop = footer.getBoundingClientRect().top;
+    body.scrollTop = body.scrollHeight;
+    fireEvent.scroll(body);
+    await waitFor(() => expect(dialog).toHaveAttribute("data-overflow-end", "false"));
+    await expect(footer.getBoundingClientRect().top).toBe(footerTop);
+    const input = canvas.getByRole("textbox", { name: "템플릿 이름 (필수)" });
+    await userEvent.type(input, "긴 템플릿");
+    await userEvent.click(canvas.getByRole("button", { name: "저장" }));
+    await expect(canvas.getByText("긴 템플릿 저장 완료")).toBeInTheDocument();
   },
 };
 
@@ -594,6 +625,8 @@ export const Scrollable: Story = {
     </DialogRoot>
   ),
 };
+
+export const DarkScrollable: Story = { ...Scrollable, globals: { theme: "dark" } };
 
 function TextUpdateDialog({ nested = false }: { nested?: boolean }) {
   const [longText, setLongText] = useState(false);
