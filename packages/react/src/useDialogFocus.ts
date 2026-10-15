@@ -118,6 +118,17 @@ export function useDialogFocus({
     const view = document.defaultView;
     const focusInitialTarget = () => {
       session.initialFocusFrame = null;
+      if (dialog.hasAttribute("data-debug-autofocus")) {
+        console.info("Dialog initial focus frame", {
+          session: session.id,
+          state: session.state,
+          open: dialog.open,
+          current: sessionRef.current?.id,
+          top: getTopDialogSession(document)?.id,
+          initial: optionsRef.current.initialFocusRef?.current?.id,
+          active: document.activeElement?.id,
+        });
+      }
       if (
         session.state !== "active" ||
         sessionRef.current !== session ||
