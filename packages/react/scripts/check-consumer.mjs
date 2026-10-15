@@ -466,6 +466,8 @@ async function checkBrowser(consumerDirectory) {
     const openRefDialog = async () => {
       await page.getByTestId("ref-dialog-trigger").click();
       await waitForFocus(page.getByRole("heading", { name: "Ref lifecycle dialog" }));
+      // Native title focus can precede the body mounting and attaching its ref.
+      await page.getByRole("button", { name: "Replace refs", exact: true }).waitFor();
     };
     await openRefDialog();
     await assertRefBalance(0, "cleanup", 1);
