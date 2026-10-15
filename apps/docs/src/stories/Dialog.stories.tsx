@@ -75,14 +75,6 @@ function AutoFocusDialog() {
         <DialogTrigger>자동 포커스 Dialog 열기</DialogTrigger>
         <DialogContent
           {...(explicitFocus ? { initialFocusRef: firstRef } : {})}
-          data-debug-autofocus="true"
-          onFocusCapture={(event) => {
-            console.info("Dialog autofocus event", {
-              explicitFocus,
-              target: event.target.id,
-              firstRef: firstRef.current?.id,
-            });
-          }}
           title="자동 포커스"
         >
           <DialogBody>

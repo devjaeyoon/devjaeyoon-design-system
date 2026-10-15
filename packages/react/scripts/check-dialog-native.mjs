@@ -47,6 +47,7 @@ async function checkCanceledOpening(page, waitForFocus) {
     await child.waitFor({ state: "hidden" });
     await page.getByRole("button", { name: `Finish ${mode} opening`, exact: true }).click();
     await waitForFocus(trigger);
+    await page.getByTestId(`${mode}-opening-closes`).filter({ hasText: "1" }).waitFor();
     assert.equal(await page.getByTestId(`${mode}-opening-closes`).textContent(), "1");
     await assertUnlocked(page);
   }

@@ -38,6 +38,8 @@ export default defineConfig({
         ],
         test: {
           name: "storybook",
+          // WebKit throttles animation frames in background pages used by focus stories.
+          fileParallelism: getTestBrowser() !== "webkit",
           browser: {
             enabled: true,
             provider: playwright({}),
