@@ -16,16 +16,22 @@ async function assertUnlocked(page) {
   );
 }
 
+async function assertCounter(page, testId, expected) {
+  const counter = page.getByTestId(testId);
+  await counter.filter({ hasText: new RegExp(`^${expected}$`) }).waitFor({ state: "attached" });
+  assert.equal(await counter.textContent(), String(expected));
+}
+
 async function checkCanceledOpening(page, waitForFocus) {
   for (const mode of ["uncontrolled", "controlled", "retained"]) {
     const trigger = page.getByRole("button", { name: `Open ${mode} opening`, exact: true });
     const dialog = page.getByTestId(`${mode}-opening-dialog`);
     await trigger.click();
-    await page.getByTestId(`${mode}-opening-attempts`).filter({ hasText: "1" }).waitFor();
+    await assertCounter(page, `${mode}-opening-attempts`, 1);
     await waitForFrame(page);
     assert.equal(await dialog.evaluate((element) => element.matches(":modal")), false);
-    assert.equal(await page.getByTestId(`${mode}-opening-requests`).textContent(), "1");
-    assert.equal(await page.getByTestId(`${mode}-opening-closes`).textContent(), "0");
+    await assertCounter(page, `${mode}-opening-requests`, 1);
+    await assertCounter(page, `${mode}-opening-closes`, 0);
     assert.equal(await page.locator("dialog:modal").count(), 0);
     await assertUnlocked(page);
     assert.equal(
@@ -35,20 +41,19 @@ async function checkCanceledOpening(page, waitForFocus) {
     if (mode === "retained") {
       await page.getByRole("button", { name: "Reset retained opening", exact: true }).click();
       await waitForFrame(page);
-      assert.equal(await page.getByTestId(`${mode}-opening-attempts`).textContent(), "1");
+      await assertCounter(page, `${mode}-opening-attempts`, 1);
     }
     await trigger.click();
     const child = page.getByRole("dialog", { name: `${mode} opening child`, exact: true });
     await child.waitFor({ state: "visible" });
     await waitForFrame(page);
     assert.equal(await dialog.evaluate((element) => element.matches(":modal")), true);
-    assert.equal(await page.getByTestId(`${mode}-opening-attempts`).textContent(), "2");
+    await assertCounter(page, `${mode}-opening-attempts`, 2);
     await page.keyboard.press("Escape");
     await child.waitFor({ state: "hidden" });
     await page.getByRole("button", { name: `Finish ${mode} opening`, exact: true }).click();
     await waitForFocus(trigger);
-    await page.getByTestId(`${mode}-opening-closes`).filter({ hasText: "1" }).waitFor();
-    assert.equal(await page.getByTestId(`${mode}-opening-closes`).textContent(), "1");
+    await assertCounter(page, `${mode}-opening-closes`, 1);
     await assertUnlocked(page);
   }
 
@@ -61,15 +66,15 @@ async function checkCanceledOpening(page, waitForFocus) {
   await waitForFrame(page);
   await assertUnlocked(page);
   await resolve.click();
-  await page.getByTestId("canceled-reveal-closes").filter({ hasText: "1" }).waitFor();
+  await assertCounter(page, "canceled-reveal-closes", 1);
   await waitForFocus(trigger);
-  assert.equal(await page.getByTestId("canceled-reveal-native-closes").textContent(), "0");
+  await assertCounter(page, "canceled-reveal-native-closes", 0);
   await assertUnlocked(page);
   await trigger.click();
   await page.getByRole("textbox", { name: "Canceled reveal draft", exact: true }).waitFor();
   await page.getByRole("button", { name: "Finish canceled reveal", exact: true }).click();
   await waitForFocus(trigger);
-  assert.equal(await page.getByTestId("canceled-reveal-closes").textContent(), "2");
+  await assertCounter(page, "canceled-reveal-closes", 2);
   await assertUnlocked(page);
 
   const reopeningTrigger = page.getByRole("button", {
@@ -78,10 +83,10 @@ async function checkCanceledOpening(page, waitForFocus) {
   });
   await reopeningTrigger.click();
   await page.getByRole("textbox", { name: "Canceled reopening draft", exact: true }).press("F2");
-  await page.getByTestId("canceled-reopening-closes").filter({ hasText: "1" }).waitFor();
-  await page.getByTestId("canceled-reopening-child-closes").filter({ hasText: "1" }).waitFor();
+  await assertCounter(page, "canceled-reopening-closes", 1);
+  await assertCounter(page, "canceled-reopening-child-closes", 1);
   await waitForFocus(reopeningTrigger);
-  assert.equal(await page.getByTestId("canceled-reopening-requests").textContent(), "1");
+  await assertCounter(page, "canceled-reopening-requests", 1);
   assert.equal(await page.locator("dialog:modal").count(), 0);
   await assertUnlocked(page);
   await page.getByRole("button", { name: "Reset canceled reopening", exact: true }).click();
