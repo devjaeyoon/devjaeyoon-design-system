@@ -15,8 +15,8 @@ env:
   TURBO_TELEMETRY_DISABLED: "1"
 
 jobs:
-  check:
-    name: check
+  core:
+    name: core checks
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -49,7 +49,7 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -63,3 +63,73 @@ jobs:
       - name: Check changeset coverage
         if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
         run: node scripts/check-changesets.mjs "origin/${{ github.base_ref }}"
+
+  browser:
+    name: browser / ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+    env:
+      DS_TEST_BROWSER: ${{ matrix.browser }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.18.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.18.0
+          cache: pnpm
+
+      - name: Restore Turbo cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .turbo/cache
+          key: ${{ runner.os }}-turbo-${{ matrix.browser }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-${{ matrix.browser }}-
+            ${{ runner.os }}-turbo-
+
+      - name: Restore Playwright ${{ matrix.browser }}
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ matrix.browser }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install ${{ matrix.browser }} system dependencies
+        run: pnpm --filter @devjaeyoon-design-system/docs exec playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Test Storybook in ${{ matrix.browser }}
+        run: pnpm test:stories
+
+      - name: Test packed React consumer in ${{ matrix.browser }}
+        run: pnpm --filter @devjaeyoon-design-system/react pack:check
+
+  check:
+    name: check
+    if: always()
+    needs: [core, browser]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all checks to pass
+        env:
+          BROWSER_RESULT: ${{ needs.browser.result }}
+          CORE_RESULT: ${{ needs.core.result }}
+        run: |
+          test "$CORE_RESULT" = "success"
+          test "$BROWSER_RESULT" = "success"

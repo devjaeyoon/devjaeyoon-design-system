@@ -31,10 +31,11 @@ apps/docs/pages-dist
 - `build:storybook`: 공개 패키지 build 뒤에 실행하고 `storybook-static/**`를 cache한다.
 - `build:pages`: 동일 workspace의 Starlight/Storybook build 뒤에 artifact를 조립한다.
 - `pack:check`: 해당 패키지 build 뒤 publint, attw, pack dry-run을 실행한다. React 패키지는
-  React/CSS tarball을 독립 임시 앱에 설치해 공개 타입, production build, SSR, Chromium
-  상호작용과 계산 스타일도 검사한다.
+  React/CSS tarball을 독립 임시 앱에 설치해 공개 타입, production build, SSR, 선택한 Playwright
+  브라우저의 상호작용과 계산 스타일도 검사한다.
 - `dev`, `storybook`: persistent이며 cache하지 않는다.
-- `test:stories`: Vitest browser mode와 Playwright Chromium을 사용한다.
+- `test:stories`: Vitest browser mode와 `DS_TEST_BROWSER`로 선택한 Playwright 브라우저를 사용한다.
+  환경 변수를 생략하면 Chromium을 사용하며 Firefox와 WebKit도 지원한다.
 
 ## 공개 패키지
 
@@ -74,9 +75,11 @@ Pages base path는 `/devjaeyoon-design-system/`, Storybook production base는
 
 ## CI와 release
 
-전체 `pnpm check`는 PR과 수동 실행에서만 단일 Ubuntu job으로 실행한다. pnpm store,
-Playwright Chromium, Turbo cache를 재사용하고 동일 PR의 이전 실행을 취소한다. 모든 외부
-GitHub Action은 commit SHA로 고정한다.
+PR과 수동 실행에서는 Ubuntu의 core job이 전체 `pnpm check`를 Chromium으로 실행하고,
+Firefox·WebKit matrix job이 Storybook과 React tarball consumer를 추가로 검사한다. 기존 branch
+ruleset의 `CI / check`는 이 세 결과를 집계하므로 하나라도 실패하면 merge할 수 없다. pnpm store,
+브라우저별 Playwright binary, 브라우저별 Turbo cache를 재사용하고 동일 PR의 이전 실행을
+취소한다. 모든 외부 GitHub Action은 commit SHA로 고정한다.
 
 `PUBLIC_RELEASE_ENABLED`가 정확히 `true`이고 repository가 public일 때만 다음이 실행된다.
 

@@ -61,6 +61,7 @@ export default defineConfig({
           label: "컴포넌트",
           items: [
             { label: "Button", link: "/components/button/" },
+            { label: "Dialog", link: "/components/dialog/" },
             { label: "TextField", link: "/components/text-field/" },
           ],
         },

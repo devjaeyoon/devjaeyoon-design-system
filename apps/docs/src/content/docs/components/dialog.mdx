@@ -1,0 +1,253 @@
+---
+title: Dialog
+description: 현재 흐름 위에서 정보 조회와 입력 작업을 수행하는 모달
+---
+
+`Dialog`는 현재 화면을 일시 중단하고 정보 조회, 폼 입력이나 설정 작업에 집중하게 합니다.
+즉각적인 경고나 되돌리기 어려운 확인에는 별도의 AlertDialog 패턴을 사용합니다.
+
+## 기본 사용
+
+```tsx
+import {
+  Button,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogRoot,
+  DialogTrigger,
+} from "@devjaeyoon-design-system/react";
+
+<DialogRoot>
+  <DialogTrigger>상세 보기</DialogTrigger>
+  <DialogContent title="운동 기록" description="저장된 세트 정보를 확인합니다.">
+    <DialogBody>본문</DialogBody>
+    <DialogFooter>
+      <DialogClose>닫기</DialogClose>
+      <Button>오늘로 불러오기</Button>
+    </DialogFooter>
+  </DialogContent>
+</DialogRoot>;
+```
+
+`DialogContent`의 `title`은 필수이며 접근성 이름으로 연결됩니다. 간단한 설명은
+`description`으로 전달합니다. 여러 문단이나 목록 자체가 설명 역할을 한다면 `description`을
+생략하고 본문을 순서대로 탐색할 수 있게 작성합니다.
+
+## API
+
+### DialogRoot
+
+| prop | 타입 | 기본값 | 동작 |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | 필수 | Trigger와 Content에 같은 열림 상태를 제공합니다. |
+| `open` | `boolean` | 미지정 | 지정하면 controlled 방식으로 동작합니다. |
+| `defaultOpen` | `boolean` | `false` | uncontrolled 방식의 초기 열림 상태입니다. |
+| `onOpenChange` | `(open: boolean) => void` | 없음 | 열기·닫기 요청을 전달합니다. controlled 소유자는 요청을 수락할 때 `open`을 갱신합니다. |
+| `closeOnInteractOutside` | `boolean` | `false` | 모달 바깥에서 시작하고 끝난 주 포인터 클릭으로 닫기를 요청합니다. |
+| `closeOnEscape` | `boolean` | `true` | Escape와 native `requestClose()`의 cancel을 허용합니다. `false`이면 차단합니다. |
+
+### DialogContent
+
+| prop | 타입 | 기본값 | 동작 |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | 필수 | 열려 있는 동안 본문과 Footer 등의 콘텐츠를 렌더링합니다. |
+| `title` | `string` | 필수 | 헤더 제목을 렌더링하고 기본 접근성 이름으로 연결합니다. |
+| `description` | `string` | 없음 | 짧은 설명을 렌더링하고 기본 접근성 설명으로 연결합니다. |
+| `size` | `"medium" \| "large"` | `"medium"` | 모달의 너비를 선택합니다. |
+| `showCloseButton` | `boolean` | `true` | 헤더 닫기 버튼을 표시합니다. |
+| `closeLabel` | `string` | `"닫기"` | 헤더 닫기 버튼의 접근성 이름입니다. 앱의 언어에 맞게 지정할 수 있습니다. |
+| `initialFocusRef` | `RefObject<HTMLElement \| null>` | 없음 | Dialog 안의 유효한 요소를 초기 포커스의 첫 후보로 사용합니다. |
+| `returnFocusRef` | `RefObject<HTMLElement \| null>` | 없음 | 닫힌 뒤 유효한 복귀 요소의 첫 후보로 사용합니다. |
+| `onCloseAutoFocus` | `(event: Event) => void` | 없음 | 실제 세션 종료 후 컴포넌트의 포커스 복귀를 제어합니다. |
+
+`DialogContent`는 `ref`, `id`, `className`, native 이벤트 등의 `<dialog>` props를 보존합니다.
+열림 상태와 닫기 정책은 `DialogRoot`에서 제어하므로 native `open`과 `closedby`는 직접 지정하지
+않습니다. 바깥 영역 클릭과 Escape는 각각 `closeOnInteractOutside`와 `closeOnEscape`를 따릅니다.
+native `closedby`는 내부에서 `closerequest`로 유지해 바깥 영역 클릭의 닫기 요청이 중복되지
+않도록 합니다. `onCancel`과 명시적인 `requestClose(result)`의 취소·결과값 처리는 유지됩니다.
+`aria-labelledby`와 `aria-describedby`를
+직접 지정하면 각각 자동 생성된 제목·설명 연결보다 우선합니다.
+
+### callback 시점과 취소 범위
+
+| callback | 호출 시점 | 제어 범위 |
+| --- | --- | --- |
+| `DialogRoot.onOpenChange` | 열기·닫기 요청 시 | controlled `open` 갱신으로 요청을 수락하거나 거부합니다. 요청 자체는 세션 종료를 의미하지 않습니다. |
+| `DialogContent.onBeforeToggle` | native 열기·닫기 직전 | 열기 이벤트의 `preventDefault()`로 열기를 취소할 수 있습니다. |
+| `DialogContent.onCancel` | Escape 또는 native `requestClose()`의 cancel 시 | 취소 가능한 이벤트의 `preventDefault()`로 닫기를 차단합니다. 직접 `close()`와 폼 제출은 이 callback을 거치지 않습니다. |
+| `DialogContent.onClose` | native close 이벤트 전달 시 | native 결과를 관찰합니다. controlled 닫기 거부 시에도 호출될 수 있으며, `preventDefault()`로 닫기를 취소할 수 없습니다. Suspense 숨김과 중첩 순서 복원을 위한 내부 닫기는 전달하지 않습니다. |
+| `DialogContent.onCloseAutoFocus` | 실제 세션 종료 후 포커스 복귀 예약 전 | `preventDefault()`로 컴포넌트의 추가 복귀를 취소합니다. 이미 수행된 native 복귀는 취소하지 않으므로 다른 위치로 이동하려면 callback에서 직접 `focus()`합니다. |
+
+`DialogTrigger`와 `DialogClose`는 `Button` props를 보존합니다. 소비자의 `onClick`을 먼저 호출하며,
+`preventDefault()`를 호출하면 해당 클릭의 열기·닫기 요청을 보내지 않습니다. `DialogClose`의
+기본 `variant`는 `"secondary"`입니다. `DialogBody`와 `DialogFooter`는 각각 `<div>`와 `<footer>`
+props를 보존하며, `DialogBody`에 `tabIndex`를 지정하지 않으면 스크롤이 생길 때 자동으로 `0`을
+설정합니다.
+
+## 폼 구성
+
+`DialogBody`와 `DialogFooter`는 `DialogContent` 아래에 나란히 배치합니다. 두 영역을
+`<form>`이나 별도 DOM 요소로 함께 감싸면 본문의 높이 제한이 전달되지 않아 Dialog 전체가
+스크롤되고 Footer 고정과 본문 스크롤 표시가 유지되지 않습니다.
+
+폼은 `DialogBody` 안에 두고, Footer의 제출 버튼은 `form` 속성으로 연결합니다. 여러 Dialog가
+같은 화면에 있어도 충돌하지 않도록 폼 ID는 컴포넌트 안에서 `useId()`로 생성합니다.
+
+```tsx
+import { TextField } from "@devjaeyoon-design-system/react";
+import { useId } from "react";
+
+function ProfileFormContent() {
+  const formId = useId();
+
+  return (
+    <DialogContent title="프로필 수정">
+      <DialogBody>
+        <form id={formId} method="dialog">
+          <TextField label="이름" name="name" required />
+        </form>
+      </DialogBody>
+      <DialogFooter>
+        <DialogClose>취소</DialogClose>
+        <Button form={formId} type="submit">
+          확인
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
+```
+
+`ProfileFormContent`를 `DialogRoot` 아래에 배치하면 native 폼 제출로 닫습니다. 비동기 저장에서는
+`onSubmit`에서 `preventDefault()`를 호출하고 저장이 성공한 뒤 controlled `open`을 `false`로
+변경합니다.
+
+## 상태와 닫기
+
+`DialogRoot`는 `defaultOpen`을 사용하는 uncontrolled 방식과 `open`·`onOpenChange`를 사용하는
+controlled 방식을 지원합니다. 비동기 저장은 controlled 상태로 관리하고 성공했을 때만 닫습니다.
+controlled 방식에서 Escape 닫기 요청 이후에도 `open=true`를 유지하면 모달과 입력 포커스가
+유지되며, 이 과정에서는 `onCloseAutoFocus`를 호출하지 않습니다.
+
+`onBeforeToggle`에서 열기 이벤트의 `preventDefault()`를 호출하면 native 모달을 열지 않고
+`onOpenChange(false)`를 한 번 요청합니다. 최초 열기를 취소한 경우 스크롤 잠금이나 닫기
+callback을 생성하지 않으며, 다음 Trigger 클릭으로 다시 시도할 수 있습니다. controlled 방식은
+소유자가 이 요청을 반영해 `open=false`로 변경해야 다시 열 수 있습니다. 요청을 거부해도 배경을
+잠그거나 자동으로 열기를 반복하지 않습니다. Suspense에서 기존 모달을 복원하는 열기를 취소하면,
+소유자가 `open=false`를 반영했을 때 기존 세션을 한 번 종료합니다.
+
+바깥 영역 클릭은 기본적으로 닫히지 않습니다. 가벼운 조회 화면에서만
+`closeOnInteractOutside`를 사용합니다. Escape는 기본적으로 닫히며 `closeOnEscape={false}`로
+막을 수 있습니다. `onCancel`에서 `preventDefault()`를 호출해 현재 상황에 따라 Escape 닫기를
+취소할 수도 있습니다. 모든 Dialog에는 헤더 닫기 또는 Footer의 취소·닫기 중 하나를 제공합니다.
+입력 작업에서는 `showCloseButton={false}`와 명시적인 취소 버튼 조합을 권장합니다.
+바깥 클릭으로 닫기는 주 버튼 클릭에만 적용하며, 우클릭·중간 버튼·취소된 포인터와 본문 안에서
+시작한 드래그는 닫기로 처리하지 않습니다.
+
+열려 있는 `DialogContent`가 조건부 렌더링으로 제거되면 일반 닫기와 같은 수명 주기로 처리합니다.
+배경 스크롤과 viewport listener를 해제하고 `onCloseAutoFocus`를 한 번 호출한 뒤 유효한 복귀
+대상으로 포커스를 옮깁니다. React StrictMode의 개발용 effect 재실행은 닫기로 취급하지 않습니다.
+native `close()`를 ref에서 직접 호출한 경우에도 `onOpenChange(false)`가 한 번 요청됩니다.
+`<form method="dialog">` 제출도 같은 닫기 요청으로 처리합니다. controlled 상태에서 요청을
+거부하고 `open=true`를 유지하면 모달, 입력 값과 포커스, 배경 스크롤 잠금을 유지하며
+`onCloseAutoFocus`는 호출하지 않습니다. native `onClose`는 실제 닫기 이벤트를 알리는 callback이므로
+요청을 거부한 경우에도 호출됩니다. 닫기 직후 새 세션을 열면 이전 native 닫기 이벤트가
+새 모달을 닫지 않습니다.
+직접 `close()`나 폼 제출 직후 Suspense fallback이 표시되어도 닫기 요청을 한 번 전달합니다.
+소유자가 수락하면 로딩 완료 후 다시 열리지 않으며, 거부하면 reveal에서 기존 입력과 마지막
+포커스를 복원합니다. 이 경우 native 결과값이 기록된 뒤 `onOpenChange(false)`를 전달하며,
+지연된 `onClose`보다 먼저 호출될 수 있습니다.
+브라우저가 지원하는 `requestClose(result)`는 `onCancel`을 거친 뒤 native `returnValue`에 결과를
+기록하며, `onClose`에서 이 값을 읽을 수 있습니다. `onCancel`에서 취소하거나
+`closeOnEscape={false}`이면 결과를 기록하지 않고 열린 상태를 유지합니다. controlled 소유자가
+닫기를 거부하면 native `onClose`에서 결과를 알린 뒤 같은 모달과 입력을 복원하며,
+`onOpenChange(false)`는 요청당 한 번 호출합니다.
+`requestClose(result)`의 상태 변경 요청은 native 결과값이 기록된 뒤 전달됩니다. 일반적으로
+`onClose` 다음에 `onOpenChange(false)`를 호출하므로, 소유자가 `flushSync`로 즉시 닫기를
+반영해도 결과값을 보존합니다.
+`onCancel`에서 Dialog를 감싼 Suspense가 숨겨졌다가 즉시 복원되어도 결과값 기록 후 닫기 요청을
+한 번 전달합니다. 이때 모달 복원은 요청 이후 React 상태가 반영될 때까지 보류합니다. 닫기를
+수락하면 다시 열지 않고 종료하며, 거부하면 같은 입력과 포커스를 복원합니다. Suspense와 native
+이벤트 순서에 따라 `onOpenChange(false)`가 지연된 `onClose`보다 먼저 호출될 수 있으므로,
+두 callback의 순서에 의존하지 않고 기록된 결과값과 실제 `open` 상태를 사용합니다.
+자식 Dialog가 열린 상태에서 부모의 native 닫기를 거부해도 자식이 최상위 모달로 유지됩니다.
+순서 복원 과정에서 자식의 입력과 포커스를 유지하며 자식의 닫기 callback은 호출하지 않습니다.
+`startTransition`의 닫기가 Suspense 때문에 지연되면 실제로 반영된 `open`을 기준으로 동작합니다.
+아직 반영되지 않은 닫기 때문에 세션을 종료하지 않으며, native 닫기 요청을 거부한 뒤 전환을
+취소하면 기존 모달, 입력과 스크롤 잠금을 유지합니다.
+지연된 닫기가 나중에 반영되어 복원된 모달이 다시 닫히면 새로운 native `onClose`가 발생합니다.
+닫기 요청 횟수와 native 이벤트 횟수가 항상 같지는 않으며, 실제 세션 종료는 `open=false`가
+반영된 상태와 `onCloseAutoFocus`를 기준으로 처리합니다.
+
+Dialog 전체를 감싼 `Suspense`가 본문 로딩을 기다리는 동안에는 모달과 배경 스크롤 잠금을
+일시 해제해 fallback 화면을 조작할 수 있게 합니다. 본문이 준비되면 모달을 복원하며 기존 입력
+값과 포커스를 유지합니다. 임시 숨김은 `onOpenChange(false)`, `onClose`, `onCloseAutoFocus`를
+호출하지 않습니다. 로딩 중 상태를 닫거나 Content를 제거하면 실제 닫기로 처리합니다.
+
+## 크기와 스크롤
+
+`size="medium"`은 30rem으로 일반 입력 폼에 사용하고, `large`는 50rem으로 복잡한 설정이나 많은
+데이터에 사용합니다. 기본 글꼴 크기 16px에서는 각각 480px와 800px입니다. 좁은 화면에서는
+화면 너비의 90%로 줄어듭니다. 최대 높이는 가용 화면의
+80%이며, 긴 내용은 `DialogBody`만 스크롤됩니다. 화면 높이가 작거나 기본 글꼴이 커서 헤더와
+Footer를 함께 표시하기 어려우면 본문의 최소 높이를 확보하고 Dialog 전체도 스크롤됩니다.
+스크롤 위치에 따라 헤더 경계선과 본문 하단
+흐림이 자동으로 표시됩니다.
+본문의 텍스트 갱신과 `hidden`, `style`, `class` 등의 속성 변경으로 내용 높이가 달라져도 스크롤
+표시와 자동 키보드 접근 상태를 갱신합니다.
+고정 높이 wrapper 안의 중첩 콘텐츠가 CSS transition으로 높이, padding, border 크기를 변경하는
+동안에도 갱신합니다. 중첩 Dialog의 본문은 각각 독립적으로 처리하며, 명시한 `tabIndex`는
+자동 값보다 우선합니다.
+고정 높이로 감싼 이미지가 비동기로 로드되어 본문에 스크롤이 생기는 경우에도 갱신합니다.
+열려 있는 동안 배경 스크롤을 잠그며, 마지막 Dialog가 닫히면 기존 인라인 `overflow-x`·`overflow-y`
+값과 `!important` 우선순위를 복원합니다.
+CSS 변수를 사용하는 `overflow` 표현식과 모달이 열린 동안 변경한 다른 인라인 스타일도
+보존합니다. 변수 기반 축약 속성에 한쪽 축을 덮어써 브라우저 CSSOM에서 원래 변수 표현식을
+읽을 수 없는 경우에는 해당 축의 계산값과 우선순위를 복원합니다. 이 경우 변수와의 연결이
+필요하면 `overflow-x`와 `overflow-y`에 변수를 각각 지정합니다.
+
+## 포커스
+
+열릴 때 `initialFocusRef`가 있으면 해당 요소에, 없으면 React의 `autoFocus` 또는 native
+`autofocus` 요소를 거쳐 제목에 포커스합니다. 본문 아래쪽의 초기 포커스 대상도 보이도록
+스크롤하며, Suspense에서 복원한 포커스도 현재 가용 영역 안으로 옮깁니다.
+화면 크기나 가용 viewport가 바뀌면 포커스를 유지한 채 Dialog 내부 스크롤을 조정해 입력란이
+보이도록 합니다. 이 보정은 배경 문서를 스크롤하지 않습니다.
+닫히면 `returnFocusRef`, 실제로 Dialog를 연 Trigger,
+현재 등록된 Trigger를 최근 등록 순서로 탐색한 뒤 열기 직전 요소로 복귀합니다. 같은 Root에
+여러 Trigger를 두어도 실제로 누른 버튼으로 돌아가며, 그 버튼이 제거되면 남아 있는 유효한
+Trigger를 사용합니다. 상태를 직접 변경해 다시 열면 이전 세션에서 눌렀던 Trigger를 재사용하지
+않으며, `returnFocusRef`가 없으면 최근 등록된 유효한 Trigger부터 복귀 대상을 탐색합니다.
+Suspense에서 복원하거나 native 닫기 요청을 거부한 경우에는 같은 세션의 Trigger를 유지합니다.
+작업 완료 후
+새로 생성된 항목처럼 더 자연스러운 다음 위치가 있다면 `onCloseAutoFocus`에서 기본 복귀를 막고
+애플리케이션이 직접 포커스합니다.
+
+초기 포커스 대상은 해당 Dialog 안에 있어야 합니다. 복귀 대상은 같은 document에 연결되어 있고
+disabled, hidden, inert, `aria-hidden`, `display: none`, `visibility: hidden` 상태가 아니어야 합니다.
+조건을 만족해도 실제로 포커스를 받지 못하면 다음 후보를 사용합니다. 중첩 Dialog에서는 맨 위
+Dialog만 초기 포커스를 설정하고, 자식이 닫힐 때 남아 있는 부모 Dialog 안의 요소로만 복귀합니다.
+부모와 자식이 처음부터 열려 있거나 함께 열려도 부모부터 모달을 열어 자식이 최상위에 놓입니다.
+자식이 열린 상태에서 부모를 닫거나 함께 닫으면 부모의 `returnFocusRef`를 포함한 복귀 순서를
+적용합니다.
+닫힌 직후 다른 Dialog가 열리거나 애플리케이션이 직접 포커스를 옮기면 예약된 복귀 작업은
+중단됩니다.
+
+`onCloseAutoFocus`의 event에 `preventDefault()`를 호출하면 컴포넌트가 예약하는 추가 포커스 복귀를
+막습니다. native `<dialog>`가 `close()` 과정에서 자체적으로 수행하는 복귀는 그보다 먼저 일어날
+수 있으므로, 완전히 다른 위치를 원하면 callback 안에서 원하는 요소의 `focus()`를 직접 호출합니다.
+
+native `<dialog>` 안에서 Portal을 사용하는 Select나 Popover는 Portal container를 실제
+`DialogContent` ref로 받은 요소로 지정해야 합니다. 모달 밖 `document.body`에 표시된 레이어는
+브라우저가 상호작용을 차단합니다.
+Dialog 안에 연결된 Portal은 본문 영역 밖으로 펼쳐져도 내부 콘텐츠로 취급하므로,
+`closeOnInteractOutside`가 켜져 있어도 Portal 클릭으로 Dialog를 닫지 않습니다.
+
+`DialogTrigger`, `DialogContent`, `DialogBody`의 `ref`는 object ref와 callback ref를 지원합니다.
+callback ref가 cleanup 함수를 반환하면 ref 교체나 요소 제거 시 그 함수를 호출하며, 반환하지
+않으면 기존 방식대로 `null`을 전달합니다. 같은 ref로 다시 렌더링할 때는 연결을 유지합니다.
+
+상태와 키보드 상호작용은
+[Dialog Storybook](https://devjaeyoon.github.io/devjaeyoon-design-system/storybook/?path=/story/components-dialog--default)에서 확인합니다.

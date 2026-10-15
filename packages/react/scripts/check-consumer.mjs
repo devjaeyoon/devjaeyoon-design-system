@@ -5,13 +5,21 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium } from "playwright";
+import { chromium, firefox, webkit } from "playwright";
 import { preview } from "vite";
+import { checkDialogBoundaries } from "./check-dialog-boundaries.mjs";
 
 const packageDirectory = resolve(fileURLToPath(new URL("../", import.meta.url)));
 const cssPackageDirectory = resolve(packageDirectory, "../css");
 const fixtureDirectory = join(packageDirectory, "test/consumer");
 const executable = (name) => (process.platform === "win32" ? `${name}.cmd` : name);
+const browserName = process.env.DS_TEST_BROWSER ?? "chromium";
+const browserTypes = { chromium, firefox, webkit };
+assert.ok(
+  Object.hasOwn(browserTypes, browserName),
+  `Unsupported DS_TEST_BROWSER "${browserName}". Expected one of: ${Object.keys(browserTypes).join(", ")}.`,
+);
+const browserType = browserTypes[browserName];
 
 function run(command, args, options = {}) {
   const result = spawnSync(executable(command), args, { stdio: "inherit", ...options });
@@ -95,6 +103,7 @@ async function assertCssBundle(consumerDirectory) {
   assert.match(css, /\.djy-text-field__input/u);
   assert.match(css, /\.djy-button/u);
   assert.match(css, /\.djy-icon-button/u);
+  assert.match(css, /\.djy-dialog__surface/u);
   assert.match(css, /\.djy-button--outline/u);
   assert.match(css, /\.djy-button--danger/u);
   assert.match(css, /--djy-size-control-lg/u);
@@ -132,6 +141,35 @@ async function assertColor(locator, property, token) {
   );
 }
 
+async function waitForFocus(locator) {
+  await locator.evaluate(async (element) => {
+    const deadline = performance.now() + 2000;
+    while (document.activeElement !== element && performance.now() < deadline) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    if (document.activeElement !== element) {
+      const activeElement = document.activeElement;
+      const ancestors = [];
+      for (let current = element; current; current = current.parentElement) {
+        const style = getComputedStyle(current);
+        ancestors.push({
+          tag: current.tagName,
+          hidden: current.hidden,
+          inert: current.hasAttribute("inert"),
+          ariaHidden: current.getAttribute("aria-hidden"),
+          display: style.display,
+          visibility: style.visibility,
+        });
+      }
+      throw new Error(
+        `Expected focus on ${element.outerHTML}, received ${activeElement?.outerHTML ?? "none"}. ` +
+          `disabled=${element.matches(":disabled")}, connected=${element.isConnected}, ` +
+          `dialogContains=${element.closest("dialog")?.contains(element)}, ancestors=${JSON.stringify(ancestors)}.`,
+      );
+    }
+  });
+}
+
 async function checkBrowser(consumerDirectory) {
   const runtimeErrors = [];
   let browser;
@@ -146,7 +184,7 @@ async function checkBrowser(consumerDirectory) {
     const address = server.httpServer.address();
     assert.ok(address && typeof address !== "string", "Expected Vite preview to bind a TCP port.");
 
-    browser = await chromium.launch({ headless: true });
+    browser = await browserType.launch({ headless: true });
     const page = await browser.newPage();
     page.on("console", (message) => {
       if (message.type() === "error") runtimeErrors.push(`console: ${message.text()}`);
@@ -169,6 +207,364 @@ async function checkBrowser(consumerDirectory) {
     });
 
     await page.goto(`http://127.0.0.1:${address.port}`, { waitUntil: "networkidle" });
+
+    const lifecycleDialog = page.getByRole("dialog", { name: "Lifecycle dialog" });
+    await lifecycleDialog.waitFor({ state: "visible" });
+    assert.equal(await page.getByTestId("dialog-close-count").textContent(), "0");
+    await waitForFocus(page.getByTestId("valid-autofocus-target"));
+
+    await page.getByTestId("rapid-reopen").click();
+    await lifecycleDialog.waitFor({ state: "visible" });
+    await page.getByTestId("dialog-close-count").filter({ hasText: "1" }).waitFor();
+    await waitForFocus(page.getByTestId("valid-autofocus-target"));
+
+    await page.getByTestId("unmount-dialog").click();
+    await lifecycleDialog.waitFor({ state: "detached" });
+    await page.getByTestId("dialog-close-count").filter({ hasText: "2" }).waitFor();
+    await waitForFocus(page.getByTestId("lifecycle-dialog-trigger"));
+
+    const parentDialogTrigger = page.getByTestId("parent-dialog-trigger");
+    await parentDialogTrigger.click();
+    const parentDialog = page.getByRole("dialog", { name: "Parent dialog" });
+    await parentDialog.waitFor({ state: "visible" });
+    const childDialogTrigger = page.getByTestId("child-dialog-trigger");
+    await childDialogTrigger.click();
+    const childDialog = page.getByRole("dialog", { name: "Child dialog" });
+    await childDialog.waitFor({ state: "visible" });
+    await page.keyboard.press("Escape");
+    await childDialog.waitFor({ state: "hidden" });
+    assert.equal(await parentDialog.isVisible(), true);
+    await waitForFocus(childDialogTrigger);
+    await page.keyboard.press("Escape");
+    await parentDialog.waitFor({ state: "hidden" });
+    await waitForFocus(parentDialogTrigger);
+
+    for (const prefix of ["initial", "simultaneous"]) {
+      const outerTrigger = page.getByTestId(`${prefix}-parent-trigger`);
+      await (prefix === "initial"
+        ? page.getByTestId("initial-nested-mount")
+        : outerTrigger
+      ).click();
+      const simultaneousParent = page.getByRole("dialog", { name: `${prefix} parent dialog` });
+      const simultaneousChild = page.getByRole("dialog", { name: `${prefix} child dialog` });
+      await simultaneousParent.waitFor({ state: "visible" });
+      await simultaneousChild.waitFor({ state: "visible" });
+      await waitForFocus(page.getByRole("heading", { name: `${prefix} child dialog` }));
+      assert.equal(await simultaneousParent.evaluate((element) => element.matches(":modal")), true);
+      assert.equal(await simultaneousChild.evaluate((element) => element.matches(":modal")), true);
+      await page.keyboard.press("Escape");
+      await simultaneousChild.waitFor({ state: "hidden" });
+      assert.equal(await simultaneousParent.isVisible(), true);
+      await waitForFocus(page.getByTestId(`${prefix}-child-trigger`));
+      assert.equal(
+        await page.locator("html").evaluate((element) => element.style.overflow),
+        "hidden",
+      );
+      await page.keyboard.press("Escape");
+      await simultaneousParent.waitFor({ state: "hidden" });
+      await waitForFocus(outerTrigger);
+      assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
+    }
+
+    const escapeDisabledTrigger = page.getByTestId("escape-disabled-trigger");
+    await escapeDisabledTrigger.click();
+    const escapeDisabledDialog = page.getByRole("dialog", { name: "Escape disabled dialog" });
+    await escapeDisabledDialog.waitFor({ state: "visible" });
+    await page.keyboard.press("Escape");
+    assert.equal(await escapeDisabledDialog.isVisible(), true);
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await page.keyboard.press("Escape");
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
+      assert.equal(await escapeDisabledDialog.isVisible(), true);
+      assert.equal(
+        await escapeDisabledDialog.evaluate((element) => element.matches(":modal")),
+        true,
+      );
+    }
+    await page.getByRole("button", { name: "Close fixed dialog" }).click();
+    await escapeDisabledDialog.waitFor({ state: "hidden" });
+
+    await page.getByTestId("cancel-prevented-trigger").click();
+    const cancelPreventedDialog = page.getByRole("dialog", { name: "Cancel prevented dialog" });
+    await cancelPreventedDialog.waitFor({ state: "visible" });
+    await page.keyboard.press("Escape");
+    assert.equal(await cancelPreventedDialog.isVisible(), true);
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await page.keyboard.press("Escape");
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
+      assert.equal(await cancelPreventedDialog.isVisible(), true);
+      assert.equal(
+        await cancelPreventedDialog.evaluate((element) => element.matches(":modal")),
+        true,
+      );
+    }
+    await page.getByRole("button", { name: "Close guarded dialog" }).click();
+    await cancelPreventedDialog.waitFor({ state: "hidden" });
+
+    const controlledEscapeTrigger = page.getByTestId("controlled-escape-trigger");
+    await controlledEscapeTrigger.click();
+    const controlledEscapeDialog = page.getByRole("dialog", { name: "Controlled Escape dialog" });
+    const controlledDraft = page.getByRole("textbox", { name: "Controlled draft" });
+    await waitForFocus(controlledDraft);
+    await controlledDraft.fill("Unsaved work");
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      await page.keyboard.press("Escape");
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      );
+      assert.equal(await controlledEscapeDialog.isVisible(), true);
+      assert.equal(
+        await controlledEscapeDialog.evaluate((element) => element.matches(":modal")),
+        true,
+      );
+      assert.equal(
+        await page.getByTestId("controlled-escape-requests").textContent(),
+        String(attempt),
+      );
+      assert.equal(await page.getByTestId("controlled-escape-close-count").textContent(), "0");
+      assert.equal(await controlledDraft.inputValue(), "Unsaved work");
+      await waitForFocus(controlledDraft);
+      assert.equal(
+        await page.locator("html").evaluate((element) => element.style.overflow),
+        "hidden",
+      );
+    }
+    await page.getByRole("button", { name: "Allow Escape close" }).click();
+    await page.keyboard.press("Escape");
+    await controlledEscapeDialog.waitFor({ state: "hidden" });
+    await page.getByTestId("controlled-escape-close-count").filter({ hasText: "1" }).waitFor();
+    assert.equal(await page.getByTestId("controlled-escape-requests").textContent(), "4");
+    assert.equal(await page.getByTestId("controlled-escape-close-count").textContent(), "1");
+    assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
+    await waitForFocus(controlledEscapeTrigger);
+
+    await page.getByTestId("custom-focus-trigger").click();
+    const customFocusDialog = page.getByRole("dialog", { name: "Custom focus dialog" });
+    await customFocusDialog.waitFor({ state: "visible" });
+    await page.getByRole("button", { name: "Close custom focus dialog" }).click();
+    await customFocusDialog.waitFor({ state: "hidden" });
+    await waitForFocus(page.getByTestId("custom-focus-target"));
+
+    const preventedReturnTrigger = page.getByTestId("prevented-return-trigger");
+    await preventedReturnTrigger.click();
+    const preventedReturnDialog = page.getByRole("dialog", { name: "Prevented return dialog" });
+    await preventedReturnDialog.waitFor({ state: "visible" });
+    await page.getByRole("button", { name: "Close prevented return dialog" }).click();
+    await preventedReturnDialog.waitFor({ state: "hidden" });
+    await waitForFocus(preventedReturnTrigger);
+    assert.equal(
+      await page
+        .getByTestId("prevented-return-target")
+        .evaluate((element) => element === document.activeElement),
+      false,
+    );
+
+    const suspenseTrigger = page.getByRole("button", { name: "Open Suspense dialog" });
+    const suspenseDialog = page.getByTestId("suspense-dialog");
+    const suspenseCloseCount = page.getByTestId("suspense-close-count");
+    const suspenseNativeCloseCount = page.getByTestId("suspense-native-close-count");
+    const resolveSuspense = page.getByRole("button", { name: "Resolve Suspense content" });
+    const waitForSuspenseFallback = async () => {
+      await resolveSuspense.waitFor({ state: "visible" });
+      await page.waitForFunction(
+        () =>
+          !document.querySelector('[data-testid="suspense-dialog"]').matches(":modal") &&
+          document.documentElement.style.overflow === "" &&
+          document.body.style.overflow === "",
+      );
+    };
+    await suspenseTrigger.click();
+    await waitForSuspenseFallback();
+    assert.equal(await suspenseCloseCount.textContent(), "0");
+    assert.equal(await suspenseNativeCloseCount.textContent(), "0");
+    // A physical click verifies the fallback is outside any native modal's inert background.
+    await resolveSuspense.click();
+    const suspenseInput = page.getByRole("textbox", { name: "Suspense draft" });
+    await waitForFocus(suspenseInput);
+    await suspenseInput.fill("Preserved across Suspense");
+    const savedInput = await suspenseInput.elementHandle();
+    assert.ok(savedInput);
+    const reloadSuspense = page.getByRole("button", { name: "Reload Suspense content" });
+    await reloadSuspense.click();
+    await waitForSuspenseFallback();
+    await resolveSuspense.click();
+    await waitForFocus(reloadSuspense);
+    assert.equal(
+      await suspenseInput.evaluate((element, saved) => element === saved, savedInput),
+      true,
+    );
+    assert.equal(await suspenseInput.inputValue(), "Preserved across Suspense");
+    await savedInput.dispose();
+    assert.equal(await suspenseDialog.evaluate((element) => element.matches(":modal")), true);
+    assert.equal(await suspenseCloseCount.textContent(), "0");
+    assert.equal(await suspenseNativeCloseCount.textContent(), "0");
+    await page.keyboard.press("Escape");
+    await waitForFocus(suspenseTrigger);
+    await suspenseCloseCount.filter({ hasText: "1" }).waitFor();
+    await suspenseNativeCloseCount.filter({ hasText: "1" }).waitFor();
+    await suspenseTrigger.click();
+    await waitForSuspenseFallback();
+    await page.getByRole("button", { name: "Cancel Suspense loading" }).click();
+    await waitForFocus(suspenseTrigger);
+    await suspenseCloseCount.filter({ hasText: "2" }).waitFor();
+    await suspenseTrigger.click();
+    await waitForSuspenseFallback();
+    await page.getByRole("button", { name: "Unmount suspended dialog" }).click();
+    await waitForFocus(suspenseTrigger);
+    await suspenseCloseCount.filter({ hasText: "3" }).waitFor();
+    assert.equal(await suspenseDialog.count(), 0);
+    assert.equal(await suspenseNativeCloseCount.textContent(), "1");
+    assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
+    assert.equal(await page.locator("body").evaluate((element) => element.style.overflow), "");
+
+    await checkDialogBoundaries(page, waitForFocus);
+
+    const nativeCloseTrigger = page.getByTestId("native-close-trigger");
+    await nativeCloseTrigger.click();
+    const nativeCloseDialog = page.getByRole("dialog", { name: "Native close dialog" });
+    await nativeCloseDialog.waitFor({ state: "visible" });
+    await page.getByRole("button", { name: "Close with native API" }).click();
+    await nativeCloseDialog.waitFor({ state: "hidden" });
+    await page.getByTestId("native-close-count").filter({ hasText: "1" }).waitFor();
+    await waitForFocus(nativeCloseTrigger);
+
+    const openerOnlyTrigger = page.getByTestId("opener-only-trigger");
+    await openerOnlyTrigger.click();
+    const openerReturnDialog = page.getByRole("dialog", { name: "Opener return dialog" });
+    await openerReturnDialog.waitFor({ state: "visible" });
+    await page.getByRole("button", { name: "Close opener return dialog" }).click();
+    await openerReturnDialog.waitFor({ state: "hidden" });
+    await waitForFocus(openerOnlyTrigger);
+
+    await page.getByTestId("explicit-return-trigger").click();
+    const explicitReturnDialog = page.getByRole("dialog", { name: "Explicit return dialog" });
+    await explicitReturnDialog.waitFor({ state: "visible" });
+    await page.getByRole("button", { name: "Close explicit return dialog" }).click();
+    await explicitReturnDialog.waitFor({ state: "hidden" });
+    await waitForFocus(page.getByTestId("explicit-return-target"));
+
+    const refOutput = page.getByTestId("ref-events");
+    const readRefEvents = () =>
+      refOutput.evaluate((element) => JSON.parse(element.textContent ?? "[]"));
+    const refRegions = ["trigger", "content", "body"];
+    const assertRefBalance = async (version, phase, expected) => {
+      const events = await readRefEvents();
+      for (const region of refRegions) {
+        const count = (action) =>
+          events.filter((event) => event === `${region}:${version}:${action}`).length;
+        assert.equal(
+          count("attach") - count(phase),
+          expected,
+          `${region} refs at version ${version}`,
+        );
+      }
+    };
+    const openRefDialog = async () => {
+      await page.getByTestId("ref-dialog-trigger").click();
+      await waitForFocus(page.getByRole("heading", { name: "Ref lifecycle dialog" }));
+    };
+    await openRefDialog();
+    await assertRefBalance(0, "cleanup", 1);
+    assert.equal(
+      (await readRefEvents()).some((event) => event.endsWith(":null")),
+      false,
+    );
+    const beforeRerender = await readRefEvents();
+    await page.getByRole("button", { name: "Rerender refs 0" }).click();
+    assert.deepEqual(await readRefEvents(), beforeRerender);
+    await page.getByRole("button", { name: "Replace refs" }).click();
+    await assertRefBalance(0, "cleanup", 0);
+    await assertRefBalance(1, "cleanup", 1);
+    await page.getByRole("button", { name: "Unmount ref dialog" }).click();
+    await assertRefBalance(1, "cleanup", 0);
+    assert.equal(
+      (await readRefEvents()).some((event) => event.endsWith(":null")),
+      false,
+    );
+
+    await page.getByRole("button", { name: "Remount ref dialog" }).click();
+    await openRefDialog();
+    await page.getByRole("button", { name: "Replace refs" }).click();
+    await assertRefBalance(1, "cleanup", 0);
+    await assertRefBalance(2, "null", 1);
+    await page.getByRole("button", { name: "Unmount ref dialog" }).click();
+    await assertRefBalance(2, "null", 0);
+
+    await page.getByRole("button", { name: "Remount ref dialog" }).click();
+    await openRefDialog();
+    await page.getByRole("button", { name: "Replace refs" }).click();
+    await assertRefBalance(2, "null", 0);
+    await page
+      .locator('[data-testid="ref-events"][data-object-refs="[true,true,true]"]')
+      .waitFor({ state: "attached" });
+    await page.getByRole("button", { name: "Unmount ref dialog" }).click();
+    await page
+      .locator('[data-testid="ref-events"][data-object-refs="[false,false,false]"]')
+      .waitFor({ state: "attached" });
+
+    const interactionDialog = page.getByRole("dialog", { name: "Interaction dialog" });
+    for (const label of ["First", "Second"]) {
+      const trigger = page.getByRole("button", { name: `${label} interaction trigger` });
+      await trigger.click();
+      await waitForFocus(page.getByRole("textbox", { name: "Interaction autofocus" }));
+      await page.getByRole("button", { name: "Rerender interaction triggers" }).click();
+      await page.keyboard.press("Escape");
+      await interactionDialog.waitFor({ state: "hidden" });
+      await waitForFocus(trigger);
+    }
+    const interactionTrigger = page.getByRole("button", { name: "First interaction trigger" });
+    await interactionTrigger.click();
+    await waitForFocus(page.getByRole("textbox", { name: "Interaction autofocus" }));
+    for (const button of ["right", "middle"]) {
+      await page.mouse.click(1, 1, { button });
+      assert.equal(await interactionDialog.evaluate((element) => element.matches(":modal")), true);
+    }
+    const surface = await interactionDialog.locator(".djy-dialog__surface").boundingBox();
+    assert.ok(surface);
+    await page.mouse.move(surface.x + 16, surface.y + 16);
+    await page.mouse.down();
+    await page.mouse.move(1, 1);
+    await page.mouse.up();
+    assert.equal(await interactionDialog.isVisible(), true);
+    await page.mouse.click(1, 1);
+    await interactionDialog.waitFor({ state: "hidden" });
+    await waitForFocus(interactionTrigger);
+
+    const dialogTrigger = page.getByTestId("dialog-trigger");
+    await dialogTrigger.click();
+    const dialog = page.getByRole("dialog", { name: "Workout details" });
+    await dialog.waitFor({ state: "visible" });
+    assert.equal(await dialog.evaluate((element) => element.matches(":modal")), true);
+    assert.equal(
+      await page
+        .getByRole("heading", { name: "Workout details" })
+        .evaluate((element) => element === document.activeElement),
+      true,
+    );
+    assert.equal(
+      await page.locator("html").evaluate((element) => element.style.overflow),
+      "hidden",
+    );
+    await page.mouse.click(1, 1);
+    assert.equal(await dialog.getAttribute("open"), "");
+    const dialogBody = page.getByTestId("dialog-body");
+    await dialogBody.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+      element.dispatchEvent(new Event("scroll", { bubbles: true }));
+    });
+    assert.equal(await dialog.getAttribute("data-scrolled-start"), "true");
+    assert.equal(await dialog.getAttribute("data-overflow-end"), "false");
+    await page.keyboard.press("Escape");
+    await dialog.waitFor({ state: "hidden" });
+    assert.equal(
+      await dialogTrigger.evaluate((element) => element === document.activeElement),
+      true,
+    );
+    assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
 
     const input = page.getByRole("textbox", { name: "Name (필수)" });
     const submitButton = page.getByRole("button", { name: "Save profile" });
@@ -338,10 +734,26 @@ async function checkBrowser(consumerDirectory) {
         }));
         assert.ok(dimensions.scrollWidth <= dimensions.width);
         assert.ok(dimensions.scrollHeight <= dimensions.height);
-        assert.equal(
-          await icon.evaluate((element) => element.getBoundingClientRect().width),
-          (rootSize === "16px" ? 52 : 104) * Number(zoom),
-        );
+        const iconDimensions = await icon.evaluate((element) => {
+          const probe = document.createElement("span");
+          probe.style.display = "block";
+          probe.style.position = "fixed";
+          probe.style.visibility = "hidden";
+          probe.style.width = "var(--djy-size-control-lg)";
+          probe.style.height = "var(--djy-size-control-lg)";
+          document.body.append(probe);
+          const iconBounds = element.getBoundingClientRect();
+          const tokenBounds = probe.getBoundingClientRect();
+          probe.remove();
+          return {
+            iconWidth: iconBounds.width,
+            iconHeight: iconBounds.height,
+            tokenWidth: tokenBounds.width,
+            tokenHeight: tokenBounds.height,
+          };
+        });
+        assert.equal(iconDimensions.iconWidth, iconDimensions.tokenWidth);
+        assert.equal(iconDimensions.iconHeight, iconDimensions.tokenHeight);
         const overflowing = await page.evaluate(() =>
           Array.from(document.querySelectorAll("body *"))
             .filter((element) => element.getBoundingClientRect().right > window.innerWidth)
@@ -372,6 +784,36 @@ async function checkBrowser(consumerDirectory) {
         );
       }
     }
+    await page.goto(`http://127.0.0.1:${address.port}/hydration.html`, {
+      waitUntil: "networkidle",
+    });
+    const hydratedParent = page.getByRole("dialog", { name: "Hydrated parent" });
+    const hydratedChild = page.getByRole("dialog", { name: "Hydrated child" });
+    await waitForFocus(page.getByRole("textbox", { name: "Hydrated autofocus" }));
+    assert.equal(await hydratedParent.evaluate((element) => element.matches(":modal")), true);
+    assert.equal(await hydratedChild.evaluate((element) => element.matches(":modal")), true);
+    assert.equal(
+      await page
+        .locator("#hydration-input")
+        .evaluate((element) => element === window.hydratedInput),
+      true,
+    );
+    assert.equal(await page.locator("#hydration-input").inputValue(), "Before hydration");
+    await page.keyboard.press("Escape");
+    await hydratedChild.waitFor({ state: "hidden" });
+    await waitForFocus(page.getByRole("button", { name: "Hydrated child trigger" }));
+    await page.keyboard.press("Escape");
+    await hydratedParent.waitFor({ state: "hidden" });
+    const hydratedTrigger = page.getByRole("button", { name: "Hydrated parent trigger" });
+    await waitForFocus(hydratedTrigger);
+    await hydratedTrigger.click();
+    await waitForFocus(page.getByRole("textbox", { name: "Hydrated autofocus" }));
+    await page.keyboard.press("Escape");
+    await hydratedChild.waitFor({ state: "hidden" });
+    await page.keyboard.press("Escape");
+    await hydratedParent.waitFor({ state: "hidden" });
+    await waitForFocus(hydratedTrigger);
+    assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
     assert.deepEqual(runtimeErrors, []);
   } finally {
     await browser?.close();

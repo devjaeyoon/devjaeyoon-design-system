@@ -24,6 +24,7 @@
     },
     "pack:check": {
       "dependsOn": ["build"],
+      "env": ["DS_TEST_BROWSER"],
       "outputs": []
     },
     "dev": {
@@ -38,6 +39,7 @@
     },
     "test:stories": {
       "dependsOn": ["^build"],
+      "env": ["DS_TEST_BROWSER"],
       "outputs": []
     }
   }

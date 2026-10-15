@@ -48,3 +48,8 @@ TextField의 공개 선택자는 `djy-text-field`, `djy-text-field__label`, `djy
 오류가 사라지면 오류 요소와 해당 `aria-describedby` ID, `aria-invalid`를 갱신한다.
 입력은 기본 크기 하나를 제공하고 `:focus-visible`, `:disabled`, `[aria-invalid="true"]`를
 스타일링한다. `readonly`는 기본 가독성과 포커스·선택을 유지한다.
+
+Dialog의 공개 선택자는 `djy-dialog`, `djy-dialog--medium`, `djy-dialog--large`,
+`djy-dialog__surface`, `djy-dialog__header`, `djy-dialog__title`, `djy-dialog__description`,
+`djy-dialog__body`, `djy-dialog__footer`다. React 동작 없이 CSS만 사용하는 경우 native
+`showModal()`·`close()` 호출, 제목과 설명 연결, 포커스 복귀와 배경 스크롤 잠금을 직접 관리한다.
