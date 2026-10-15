@@ -114,8 +114,10 @@ export const AutoFocus: Story = {
       await userEvent.click(canvas.getByRole("button", { name: "자동 포커스 닫기" }));
       await waitFor(() => expect(trigger).toHaveFocus());
       await userEvent.click(trigger);
-      await waitFor(() =>
-        expect(canvas.getByRole("textbox", { name: "명시적 포커스 입력" })).toHaveFocus(),
+      // WebKit can defer the initial-focus animation frame beyond waitFor's 1s default.
+      await waitFor(
+        () => expect(canvas.getByRole("textbox", { name: "명시적 포커스 입력" })).toHaveFocus(),
+        { timeout: 3000 },
       );
       await userEvent.click(canvas.getByRole("button", { name: "자동 포커스 닫기" }));
       await waitFor(() => expect(trigger).toHaveFocus());
