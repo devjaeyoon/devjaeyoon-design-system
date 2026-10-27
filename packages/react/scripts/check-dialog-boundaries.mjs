@@ -1,6 +1,14 @@
 import { strict as assert } from "node:assert";
 import { checkDialogNative } from "./check-dialog-native.mjs";
 
+// Native close and focus restoration can precede React state and callback commits.
+async function assertCommittedText(locator, expected) {
+  await locator
+    .filter({ hasText: new RegExp(`^${expected}$`) })
+    .waitFor({ state: "attached", timeout: 5000 });
+  assert.equal(await locator.textContent(), String(expected));
+}
+
 async function checkRootDismissalPolicy(page, waitForFocus) {
   for (const closedby of ["any", "none"]) {
     for (const mode of ["outside-blocked", "accepted", "rejected", "escape-blocked"]) {
@@ -71,12 +79,12 @@ async function checkNativeCloseSynchronization(page, waitForFocus) {
     const denied = mode === "api" || mode === "form";
     for (let attempt = 1; attempt <= (denied ? 2 : 1); attempt += 1) {
       await input.press(mode === "form" ? "Enter" : "F2");
-      await nativeEvents.filter({ hasText: String(attempt) }).waitFor();
+      await assertCommittedText(nativeEvents, attempt);
       await waitForFrame(page);
-      assert.equal(await page.getByTestId(`${mode}-native-open`).textContent(), "true");
+      await assertCommittedText(page.getByTestId(`${mode}-native-open`), "true");
       assert.equal(await dialog.evaluate((element) => element.matches(":modal")), true);
-      assert.equal(await requests.textContent(), denied ? String(attempt) : "0");
-      assert.equal(await closes.textContent(), denied ? "0" : "1");
+      await assertCommittedText(requests, denied ? attempt : 0);
+      await assertCommittedText(closes, denied ? 0 : 1);
       await waitForFocus(input);
       if (denied) assert.equal(await input.inputValue(), "Keep native draft");
       assert.equal(
@@ -94,10 +102,10 @@ async function checkNativeCloseSynchronization(page, waitForFocus) {
     await page.getByRole("button", { name: `Accept ${mode} native close`, exact: true }).click();
     await dialog.waitFor({ state: "hidden" });
     await waitForFocus(trigger);
-    assert.equal(await page.getByTestId(`${mode}-native-open`).textContent(), "false");
-    assert.equal(await requests.textContent(), denied ? "3" : "1");
-    assert.equal(await closes.textContent(), denied ? "1" : "2");
-    assert.equal(await nativeEvents.textContent(), denied ? "3" : "2");
+    await assertCommittedText(page.getByTestId(`${mode}-native-open`), "false");
+    await assertCommittedText(requests, denied ? 3 : 1);
+    await assertCommittedText(closes, denied ? 1 : 2);
+    await assertCommittedText(nativeEvents, denied ? 3 : 2);
     assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
     assert.equal(await page.locator("body").evaluate((element) => element.style.overflow), "");
   }
@@ -153,8 +161,8 @@ async function checkPendingTransition(page, waitForFocus) {
       }
       await dialog.waitFor({ state: "hidden" });
       await waitForFocus(trigger);
-      assert.equal(await page.getByTestId("transition-open").textContent(), "false");
-      assert.equal(await page.getByTestId("transition-closes").textContent(), String(index + 1));
+      await assertCommittedText(page.getByTestId("transition-open"), "false");
+      await assertCommittedText(page.getByTestId("transition-closes"), index + 1);
       assert.equal(await page.locator("html").evaluate((element) => element.style.overflow), "");
       assert.equal(await page.locator("body").evaluate((element) => element.style.overflow), "");
     } finally {
