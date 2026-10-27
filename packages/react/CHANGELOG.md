@@ -1,5 +1,11 @@
 # @devjaeyoon-design-system/react
 
+## 0.2.1
+
+### Patch Changes
+
+- 7478cba: Rebuild package artifacts with patched build tooling. Public APIs and peer dependency requirements are unchanged.
+
 ## 0.2.0
 
 ### Minor Changes
