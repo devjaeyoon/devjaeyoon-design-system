@@ -2,7 +2,7 @@
 
 ## 런타임과 workspace
 
-- Node.js: `.node-version`과 root `engines`의 `24.18.0`
+- Node.js: `.node-version`과 root `engines`의 `24.22.1`
 - pnpm: root `packageManager`와 `engines`의 `11.18.0`
 - workspace: `packages/*`, `apps/*`
 - 공통 의존성: `pnpm-workspace.yaml`의 strict catalog

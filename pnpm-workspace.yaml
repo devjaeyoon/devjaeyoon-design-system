@@ -7,32 +7,36 @@ catalogMode: strict
 catalog:
   "@arethetypeswrong/cli": 0.18.5
   "@astrojs/check": 0.9.10
-  "@astrojs/react": 6.0.2
-  "@astrojs/starlight": 0.41.7
+  "@astrojs/react": 6.0.6
+  "@astrojs/starlight": 0.42.7
   "@biomejs/biome": 2.5.8
   "@changesets/cli": 2.31.1
-  "@storybook/addon-a11y": 10.5.7
-  "@storybook/addon-docs": 10.5.7
-  "@storybook/addon-vitest": 10.5.7
-  "@storybook/react-vite": 10.5.7
+  "@storybook/addon-a11y": 10.6.2
+  "@storybook/addon-docs": 10.6.2
+  "@storybook/addon-vitest": 10.6.2
+  "@storybook/react-vite": 10.6.2
   "@types/node": 26.2.0
   "@types/react": 19.2.18
   "@types/react-dom": 19.2.4
   "@vitejs/plugin-react": 6.0.5
-  "@vitest/browser-playwright": 4.1.10
-  astro: 7.2.1
+  "@vitest/browser-playwright": 4.1.12
+  astro: 7.3.3
   playwright: 1.62.1
   publint: 0.3.23
   react: ^19.0.0
   react-dom: ^19.0.0
-  storybook: 10.5.7
+  storybook: 10.6.2
   style-dictionary: 5.4.4
   turbo: 2.10.9
   typescript: 6.0.3
-  vite: 8.2.1
-  vitest: 4.1.10
+  vite: 8.3.5
+  vitest: 4.1.12
 
 minimumReleaseAge: 0
+
+overrides:
+  "js-yaml@>=4.0.0 <4.3.2": 4.3.2
+  "smol-toml@<1.8.1": 1.9.1
 
 allowBuilds:
   esbuild: true
