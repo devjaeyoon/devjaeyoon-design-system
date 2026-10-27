@@ -1,5 +1,11 @@
 # @devjaeyoon-design-system/design-token
 
+## 0.1.1
+
+### Patch Changes
+
+- 7478cba: Rebuild package artifacts with patched build tooling. Public APIs and peer dependency requirements are unchanged.
+
 ## 0.1.0
 
 ### Minor Changes
